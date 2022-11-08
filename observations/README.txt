@@ -1,4 +1,4 @@
-README This directory includes the observations used for the BTSI model as of July 14, 2022. Unless stated otherwise, the most recent version with most thorough post-processing offered by the instrument team is used. Data files have been processed and homogenized to follow the following format:
+README This directory includes the observations used for the BTSI model as of November 8, 2022. Unless stated otherwise, the most recent version with most thorough post-processing offered by the instrument team is used. Data files have been processed and homogenized to follow the following format:
 
 Description of columns:
 1st col: Julian day of observation
@@ -47,7 +47,7 @@ Accessed: 2022/2/4
 SORCE:
 v19L3
 http://lasp.colorado.edu/home/sorce/data/
-Accessed: 2022/2/3
+Accessed: 2022/10/27
 
 TCTE:
 http://lasp.colorado.edu/home/tcte/data/
@@ -55,17 +55,17 @@ Accessed: 2021/12/8
 
 TSIS-1:
 http://lasp.colorado.edu/home/tsis/data/
-Accessed: 2021/11/29
+Accessed: 2022/10/27
 
 VIRGO/SOHO
 The data are available from the ftp server ftp.pmodwrc.ch in the directory 
 /data/irradiance/virgo/TSI/virgo_tsi_d_ and virgo_tsi_h_6_005_1805.dat
-Accessed: 2022/2/2
+Accessed: 2022/10/27
 
 SILSO:
 https://wwwbis.sidc.be/silso/datafiles
-Accessed: 2021/11/29
+Accessed: 2022/10/27
 
 Bremen Mg-II:
 Composite MgII index V5  mark.weber@uni-bremen.de
-Accessed: 2021/11/29
+Accessed: 2022/10/27
