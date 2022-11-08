@@ -9,4 +9,4 @@ A completed observation mask array and set of prior hyperparameters are located 
 To run runchain_22_04_25.m, first open the runchain_22_04_25.m script and edit any desired headers under "Headers to modify", including the name and path of the output, the observation array to be used, and any alternative model specifications one would like to use.
 
 ## Manuscript plots
-gplots_22_10_25.m and plotsupp_22_11_02.m reproduce the figures and tables cited in Amdur and Huybers 23. These scripts assume access to specific BTSI model outputs performed by the lead author. To request the mat files needed to run these scripts, please contact the corresponding author in Amdur and Huybers 23.
+gplots_22_10_25.m and plotsupp_22_11_02.m reproduce the figures and tables cited in Amdur and Huybers 23 and shown in the plots folder. These scripts assume access to specific BTSI model outputs performed by the lead author. To request the mat files needed to run these scripts, please contact the corresponding author in Amdur and Huybers 23.
