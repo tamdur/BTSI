@@ -1,4 +1,4 @@
-README This directory includes the observations used for the BTSI model as of November 8, 2022. Unless stated otherwise, the most recent version with most thorough post-processing offered by the instrument team is used. Data files have been processed and homogenized to follow the following format:
+README This directory includes the observations used for the BTSI model as of November 8, 2022. Unless stated otherwise, the most recent version with most thorough post-processing offered by the instrument team is used. To create the observation matrix used to run the MCMC model, run makeobsmatrix.m from the main directory. Modifications, such as save path and demeaning, can be altered at the header of makeobsmatrix.m. Data files have been processed and homogenized to follow the following format:
 
 Description of columns:
 1st col: Julian day of observation
