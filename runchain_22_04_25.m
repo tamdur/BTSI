@@ -8,10 +8,13 @@
 %Applied Bayesian Econometrics for Central Bankers, by Andrew Blake and
 %Haroon Mumtaz.
 
-
 clearvars
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Headers to modify
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 saveString = 'chain_output/ar2_22_11_04_long.mat';
 outDat.script=mfilename; %Save name of script
+obsmatrix='obs_22_11_03'; %Load data array, with colLabels corresponding to observer source for each column
 excludeFliers=1;%1 to remove outlier observations from examined dataset
 proxy3cycle=0;%1 to regress proxies onto TSI from 3 most recent solar cycles, 0 otherwise
 satOnly=0;%1 to ignore proxy data and only use satellites (no drift calculation), 0 otherwise
@@ -20,13 +23,11 @@ proxyModel=0;%1 to use same datasets as NRLTSI2, 0 otherwise
 %Develop a set of monthly observations from satellite and proxy
 %observations
 dateS=getdates;
-dates=dateS.all;
+dates=dateS.all2;
 dateCycles=dateS.cycles;
 
-%Load data, with colLabels corresponding to observer source for each column
-obsmatrix='obs_22_11_03';
+
 load(obsmatrix); %From makeobsmatrix.m
-%load obs_22_6_18.mat
 %Twelve columns of valM correspond to the following observers:
 %     "ACRIM1/SMM"
 %     "ACRIM2/UARS"
@@ -40,6 +41,10 @@ load(obsmatrix); %From makeobsmatrix.m
 %     "TCTE"
 %     "TSIS-1"
 %     "VIRGO/SOHO"
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Beginning of main script
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if excludeFliers %Code to remove outliers using a past run of BTSI
     load excludeMask_22_11_03.mat %from exclude_fliers_22_04_26.m
     valM(excludeMask) = NaN;

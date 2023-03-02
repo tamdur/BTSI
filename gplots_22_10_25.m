@@ -8,9 +8,9 @@ clearvars
 
 
 
-tsiComparison = 0; %Set to 1 to plot Figure 1 of manuscript
+tsiComparison = 1; %Set to 1 to plot Figure 1 of manuscript
 cycleMin = 0; %Set to 1 to plot Figure 2 of manuscript
-tsiSunspots=1; %Set to 1 to plot Figure 3 of manuscript
+tsiSunspots=0; %Set to 1 to plot Figure 3 of manuscript
 
 fSize = 16;
 
@@ -56,7 +56,7 @@ c = [c1 c2 c3]; c = c./255;
 c(10,:) = c(1,:);
 
 if tsiComparison 
-    showTrend = 1;
+    showTrend = 0;
     smoothWindow = 6; %set smoothing (months)
     %Create x-axis points for cycle demarcation
     c21=datejd([dateStruct.cycles(1,:), fliplr(dateStruct.cycles(1,:))]);
@@ -236,7 +236,7 @@ if tsiComparison
     text(datejd(dateStruct.cycles(2,1))+years(3.25),-0.8,'Cycle 22','FontSize',14)
     text(datejd(dateStruct.cycles(3,1))+years(4.75),-0.8,'Cycle 23','FontSize',14)
     text(datejd(dateStruct.cycles(4,1))+years(4.25),-0.8,'Cycle 24','FontSize',14)
-    saveas(gcf,'plots/tsicompare_22_11_07.png')
+    saveas(gcf,'plots/tsicompare_23_2_28.png')
 end
 if cycleMin
     %First, calculate the percentage of time that each simulation spends

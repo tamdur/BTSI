@@ -14,18 +14,19 @@ btsiCompare=0; %Plot BTSI from default vs different BTSI formulations
 obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
 satsatcomp=0; %Plot overlapping satellite observation model predictions
 priorsposteriors=0; %Plot three figures for: prior/posterior offset, prior/posterior drift, prior/posterior standard error
+plotData=1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TABLE CALCULATIONS
 table1=0; %Produce values for Table 1
 table2=0; %Produce values for Table 2
-btsiCompareTable=1; %Calculate solar constant and amplitude trends (w/ 95%CI) for alts
+btsiCompareTable=0; %Calculate solar constant and amplitude trends (w/ 95%CI) for alts
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
 solarvsanthroforcing = 0;%Calculate global mean surface temperature effect from 
                     %the proposed degree of additional solar radiative
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fSize = 16;
+fSize = 20;
 
 excludeFliers=1;
 
@@ -490,6 +491,87 @@ if priorsposteriors
         set(gca,'FontSize',fSize)
     end
     saveas(gcf,['plots/priorposterior3_' datesave '.png'])
+end
+if plotData 
+    showTrend = 1;
+    smoothWindow = 6; %set smoothing (months)
+    %Create x-axis points for cycle demarcation
+    c21=datejd([dateStruct.cycles(1,:), fliplr(dateStruct.cycles(1,:))]);
+    c23=datejd([dateStruct.cycles(3,:), fliplr(dateStruct.cycles(3,:))]);
+    c25=datejd([dateStruct.cycles(5,:), fliplr(dateStruct.cycles(5,:))]);
+    
+    figure2('Position',[10 10 1000 1200])
+    subplot('position',[.09 .53 .82 .45]) %Plot of satellite observations
+    
+     fill(c21,[1360 1360 1374 1374],[.96 .96 .863],'FaceAlpha',...
+        0.4,'LineStyle','none');
+    hold on
+    fill(c23,[1360 1360 1374 1374],[.96 .96 .863],'FaceAlpha',...
+        0.4,'LineStyle','none');
+    hold on
+    fill(c25,[1360 1360 1374 1374],[.96 .96 .863],'FaceAlpha',...
+        0.4,'LineStyle','none');
+    hold on
+    ind = 1;
+    for ii = 3:numel(lI) %Iterate over satellite observations
+        if showTrend
+            hold on
+            [trends,offsets2]= returntrend(A,t,ii);
+            tM = mean(trends,2) + mean(offsets2)+offsets(ii);
+            t995 = quantile(trends,.995,2)+quantile(offsets2,.995)+offsets(ii);
+            t005 = quantile(trends,.005,2)+quantile(offsets2,.005)+offsets(ii);
+            x2 = [dateM(oM(:,ii))', flip(dateM(oM(:,ii)))'];
+            fill(x2,[t995(oM(:,ii))',flip(t005(oM(:,ii)))'], ...
+                [1 .85 .85],'FaceAlpha',0.5,'LineStyle','none');
+            hold on
+            plot(dateM(oM(:,ii)),tM(oM(:,ii)),'Color','r')
+            hold on
+        end
+        plot(dateMAll,valMAll(:,ii)+offsets(ii),'o','MarkerSize',4,...
+            'Color',c(ind,:));
+        hold on
+        hh(ind) = plot(dateM,valM(:,ii)+offsets(ii),'.','MarkerSize',10,...
+            'Color',c(ind,:));
+        ind = ind + 1;
+    end
+    xlim([datetime(1978,1,1) datetime(2022,1,1)])
+    ylim([1360 1374])
+    legend(hh,colLabels(3:end),'NumColumns',2)
+    legend boxoff
+    xlabel('Year')
+    ylabel('TSI (W/m^{2})')
+    set(gca,'FontSize',fSize)
+   
+    
+    subplot('position',[.09 .125 .82 .33]) %Plot of proxy observations
+     yyaxis left
+    fill(c21,[0 0 350 350],[.96 .96 .863],'FaceAlpha',...
+        0.4,'LineStyle','none');
+    hold on
+    fill(c23,[0 0 350 350],[.96 .96 .863],'FaceAlpha',...
+        0.4,'LineStyle','none');
+    hold on
+    fill(c25,[0 0 350 350],[.96 .96 .863],'FaceAlpha',...
+        0.4,'LineStyle','none');
+    hold on
+    h(1)=plot(dateM,valM(:,1)+offsets(1),'.','MarkerSize',10);
+    ylabel('Sunspot number')
+    yyaxis right
+    h(2)=plot(dateM,valM(:,2)+offsets(2),'.','MarkerSize',10);
+    legend(h,'Silso sunspot number','Mg-II')
+    legend boxoff
+    ylabel('Mg-II index')
+    xlabel('Year')
+    xlim([datetime(1978,1,1) datetime(2022,1,1)])
+    yyaxis left
+    ylim([0 350])
+    set(gca,'FontSize',fSize)
+    
+   
+    
+    
+  
+    saveas(gcf,'plots/tsicompare_23_2_28.png')
 end
 
 
