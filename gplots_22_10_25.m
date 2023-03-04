@@ -14,9 +14,10 @@ tsiSunspots=0; %Set to 1 to plot Figure 3 of manuscript
 
 fSize = 16;
 
-load ar2_22_11_03.mat %from runchain_22_04_25.m
+%from runchain_22_04_25.m
+load ar2_23_03_04.mat
 load(outDat.obsmatrix); %From makeobsmatrix.m
-excludeFliers=outDat.excludeFliers;
+excludeFliers=outDat.opts.excludeFliers;
 dateStruct = getdates;
 startDate = datejd(dateStruct.all(1));
 endDate = datejd(dateStruct.all(2));
@@ -44,7 +45,7 @@ colLabels=colLabels(lI);
 offsets=offsets(lI);
 oM=oM(:,lI);
 sigY=sigY(lI,:);
-t=t(:,lI);
+tau=tau(:,lI);
 valM=valM(:,lI); valMAll=valMAll(:,lI);
 
 
@@ -101,7 +102,7 @@ if tsiComparison
     for ii = 3:numel(lI) %Iterate over satellite observations
         if showTrend
             hold on
-            [trends,offsets2]= returntrend(A,t,ii);
+            [trends,offsets2]= returntrend(A,tau,ii);
             tM = mean(trends,2) + mean(offsets2)+offsets(ii);
             t995 = quantile(trends,.995,2)+quantile(offsets2,.995)+offsets(ii);
             t005 = quantile(trends,.005,2)+quantile(offsets2,.005)+offsets(ii);
@@ -162,6 +163,9 @@ if tsiComparison
     xms = xms-xmsO; 
     
 %     %Get MLR model reconstruction
+    if ~exist('xMLR','var')
+        [xMLR,~] = makexmlr(dateM,pindex,oindex,valM,xAll,offsets);
+    end
     xmmlr=mean(xMLR,2);
     xmmlr=smoothPH(xmmlr,smoothWindow);
     [~,xmmlrO] = meaninterval(dateMAll,xmmlr,1990,2010);
@@ -323,7 +327,7 @@ if tsiSunspots
     %Plot CI from BTSI for sunspots
     spotPred=zeros(size(x,1),size(xAll,2))';
     for iR=1:size(xAll,2)
-        spotPred(iR,:)=squeeze(A(1,[2 3],iR))*[x';t(~nanI,1)']+offsets(1);
+        spotPred(iR,:)=squeeze(A(1,[2 3],iR))*[x';tau(~nanI,1)']+offsets(1);
     end
     linPreds=prctile(spotPred,[2.5 50 97.5])';
     linlow=linPreds(:,1);
