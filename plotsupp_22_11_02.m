@@ -12,9 +12,9 @@ clearvars
 satireCompare=0;%Examine relationship between SATIRE-S and BTSI, 0 otherwise
 btsiCompare=0; %Plot BTSI from default vs different BTSI formulations
 obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
-satsatcomp=0; %Plot overlapping satellite observation model predictions
+satsatcomp=1; %Plot overlapping satellite observation model predictions
 priorsposteriors=0; %Plot three figures for: prior/posterior offset, prior/posterior drift, prior/posterior standard error
-plotData=1;
+plotData=0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TABLE CALCULATIONS
 table1=0; %Produce values for Table 1
@@ -22,19 +22,20 @@ table2=0; %Produce values for Table 2
 btsiCompareTable=0; %Calculate solar constant and amplitude trends (w/ 95%CI) for alts
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
+uncBTSI=0; %Calculate and plot the uncertainty in BTSI
 solarvsanthroforcing = 0;%Calculate global mean surface temperature effect from 
                     %the proposed degree of additional solar radiative
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fSize = 20;
+fSize = 12;
 
 excludeFliers=1;
 
-load ar2_22_11_04_long.mat
+load ar2_23_05_11_long.mat
 dateStruct = getdates;
 startDate = datejd(dateStruct.all(1));
 endDate = datejd(dateStruct.all(2));
-dates = [juliandate(datetime(1980,2,1)) juliandate(datetime(2021,12,31))]; %Use full interval
+dates = [juliandate(datetime(1980,1,1)) juliandate(datetime(2021,12,31))]; %Use full interval
 %dates = [juliandate(datetime(1978,11,1)) juliandate(datetime(2021,12,31))]; %T Response Interval
 %dates=[juliandate(datetime(1980,2,1)) juliandate(datetime(2015,10,1))]; %Use shared interval
 %Load data, with colLabels corresponding to observer source for each column
@@ -60,8 +61,9 @@ colLabels=colLabels(lI);
 offsets=offsets(lI);
 oM=oM(:,lI);
 sigY=sigY(lI,:);
-t=t(:,lI);
+tau=tau(:,lI);
 valM=valM(:,lI); valMAll=valMAll(:,lI);
+scaling=outDat.scaling(lI);
 
 
 %Colormap for plots
@@ -216,28 +218,41 @@ if btsiCompare
     saveas(gcf,'plots/tsialternatives_22_11_07.png')
 end
 if obsContributions
-    %Plot the relative contribution of each observer to the estimate of TSI
-    smoothWindow = 24;
-    %First, try just plotting an example
+     %Plot the relative contribution of each observer to the estimate of TSI
+    smoothWindow = 36;
     conChain=outDat.contributionChain;
     conChain=conChain(:,:,lI);%Reorient to agree with formatting of this plotting function
     cn=squeeze(mean(abs(conChain),1));
-    for ii=1:12
+    for ii=1:size(valM,2)
         cn(:,ii)=movmean(cn(:,ii),smoothWindow,'omitnan');
+        cn(~oM(:,ii),ii)=NaN;
     end
     cn=cn./nansum(cn,2);
     
     %Plot
     figure2('Position',[10 10 1600 700])
-    plot(dateM,cn(:,[1 2]),'--','LineWidth',3)
     hold on
-    plot(dateM,cn(:,3:end),'LineWidth',2)
-    legend(colLabels,'Location','NorthWest')
+    ind=1;
+    cp=colororder;
+    for ii=1:2
+        h(ind)=plot(dateM,cn(:,ind),'--','LineWidth',4,'Color',cp(ii,:));
+        hold on
+        ind=ind+1;
+    end
+    for ii=1:10
+        h(ind)=plot(dateM,cn(:,ind),'LineWidth',3,'Color',c(ii,:));
+        hold on
+        ind=ind+1;
+    end
+    legend(h,colLabels,'Location','NorthWest','NumColumns',2)
     legend boxoff
     xlabel('Year')
-    ylabel('Fractional Contribution')
+    ylabel('Fractional contribution')
     set(gca,'FontSize',fSize)
-    saveas(gcf,'plots/obscontribution_22_11_07.png')
+    xlim([datetime(1979,1,1) datetime(2021,10,31)])
+    %ylim([0 1])
+    saveas(gcf,'plots/obscontribution_23_05_13.png')
+    
 end
 if satsatcomp
     %Order is chronological from first observation: HF, ACRIM1, ERBE, ACRIM2,
@@ -284,8 +299,8 @@ if satsatcomp
                 plot(dateM(oInd),residual2,'.','MarkerSize',10,'Color',cmat(2,:));
                 
                 %Plot inferred trends for each satellite
-                [t1,o1]=returntrend(A,t(oInd,:),s1);
-                [t2,o2]=returntrend(A,t(oInd,:),s2);
+                [t1,o1]=returntrend(A,tau(oInd,:),s1);
+                [t2,o2]=returntrend(A,tau(oInd,:),s2);
                 t1mm=mean(mean(t1,2)+mean(o1));
                 t1m=mean(t1+o1,2)-t1mm;
                 t1025=quantile(t1+o1,0.025,2)-t1mm;
@@ -307,9 +322,10 @@ if satsatcomp
                 hold on
                 plot(dateM(oInd),t2975,'Color',cmat(2,:),'LineWidth',2)
                 lgd=legend(h,colLabels(s1),colLabels(s2),'Location','SouthEast');
-                lgd.FontSize=12;
+                lgd.FontSize=10;
+                legend boxoff
                 indD=indD+1;
-                set(gca,'FontSize',16)
+                set(gca,'FontSize',fSize)
                 if s1 < 6
                     ylim([-0.6 0.6])
                 else 
@@ -327,12 +343,12 @@ if satsatcomp
         indD=indD+1;
     end
     delete(tt.Children(53-deleteAxes))
-    saveas(gcf,'plots/satresidual_22_11_07.png')
+    saveas(gcf,'plots/satresidual_23_05_13.png')
 end
 if priorsposteriors
-    datesave='22_11_07'; %Date for figure name
+    datesave='23_04_26'; %Date for figure name
     %Pull output from simulation
-    reps = outDat.reps;
+    reps = size(A,3);
     sC = squeeze(A(:,2,:));
     bC = squeeze(A(:,1,:));
     mC = squeeze(A(:,3,:));
@@ -437,6 +453,12 @@ if priorsposteriors
         [xPost,yPost,~] = histtoplot(yPost,xPost,20);
         hold on 
         plot(xPost,yPost)
+        if ii==6
+            line([-.255 -.255],[0 14],'Color','k','LineWidth',2)
+        end
+        if ii==7
+            line([.261 .261],[0 20],'Color','k','LineWidth',2)
+        end
         title(colLabels(offsetsI(ii)))
         xlim([quantile(vals2(:,ii),0.001) quantile(vals2(:,ii),0.999)])
         xlabel("W/m^{2}/decade")
@@ -516,7 +538,7 @@ if plotData
     for ii = 3:numel(lI) %Iterate over satellite observations
         if showTrend
             hold on
-            [trends,offsets2]= returntrend(A,t,ii);
+            [trends,offsets2]= returntrend(A,tau,ii);
             tM = mean(trends,2) + mean(offsets2)+offsets(ii);
             t995 = quantile(trends,.995,2)+quantile(offsets2,.995)+offsets(ii);
             t005 = quantile(trends,.005,2)+quantile(offsets2,.005)+offsets(ii);
@@ -579,7 +601,7 @@ end
 % TABLE CALCULATIONS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if table1
-    load oTSI_22_10_27.mat
+    load oTSI_23_02_01.mat
     
     %Get anomaly relative to 1990-2010 mean
     datePMOD=oTSI(7).mthdatetime;
@@ -612,6 +634,7 @@ if table1
     dateAR6=dateshift(dateAR6,'start','month');
     tsiAR6=meaninterval(dateAR6,tsiAR6,1990,2010);
     
+    dateM=dateshift(dateM,'start','month');
     %Get stats on each cycle minimum
     xms=mean(xAll,2); %TSI series used for minima calculation
     for ii = 1:size(dateStruct.cycles,1)-1
@@ -642,45 +665,56 @@ if table1
     meanMeanBTSI=mean(meanBTSI,1);
     
     %Get trend stats on each reconstruction over time they're all extent
-    [a,m,t]=reconstructiontrends(datePMOD,tsiPMOD,dates);
-    CPMDF=[meanPMOD(end)-meanPMOD(end-1);a;m;t];
+    [a,m,tau]=reconstructiontrends(datePMOD,tsiPMOD,dates);
+    CPMDF=[meanPMOD(end)-meanPMOD(end-1);a;m;tau];
     
-    [a,m,t]=reconstructiontrends(dateSolid,tsiSolid,dates);
-    Comm_Con=[meanSolid(end)-meanSolid(end-1);a;m;t];
+    [a,m,tau]=reconstructiontrends(dateSolid,tsiSolid,dates);
+    Comm_Con=[meanSolid(end)-meanSolid(end-1);a;m;tau];
     
-    [a,m,t]=reconstructiontrends(dateROB,tsiROB,dates);
-    ROB=[meanROB(end)-meanROB(end-1);a;m;t];
+    [a,m,tau]=reconstructiontrends(dateROB,tsiROB,dates);
+    ROB=[meanROB(end)-meanROB(end-1);a;m;tau];
     
-    [a,m,t]=reconstructiontrends(dateNRL,tsiNRL,dates);
-    NRL=[meanNRL(end)-meanROB(end-1);a;m;t];
+    [a,m,tau]=reconstructiontrends(dateNRL,tsiNRL,dates);
+    NRL=[meanNRL(end)-meanROB(end-1);a;m;tau];
     
-    [a,m,t]=reconstructiontrends(dateSAT,tsiSAT,dates);
-    SAT=[meanSAT(end)-meanSAT(end-1);a;m;t];
+    [a,m,tau]=reconstructiontrends(dateSAT,tsiSAT,dates);
+    SAT=[meanSAT(end)-meanSAT(end-1);a;m;tau];
     
-    [a,m,t]=reconstructiontrends(dateAR6,tsiAR6,dates);
-    AR6=[NaN;a;m;t];
+    [a,m,tau]=reconstructiontrends(dateAR6,tsiAR6,dates);
+    AR6=[NaN;a;m;tau];
     
     %BTSI
     for ii=1:1000
         interval=floor(size(xAll,2)./1000);
-        [a,m,t]=reconstructiontrends(dateM,xAll(:,ii.*interval),dates);
-        aa(ii)=a;mm(ii)=m;tt(ii)=t;
+        [a,m,tau]=reconstructiontrends(dateM,xAll(:,ii.*interval),dates);
+        aa(ii)=a;mm(ii)=m;tt(ii)=tau;
     end
     
-    BTSI=[meanMeanBTSI(end)-meanMeanBTSI(end-1);mean(aa);mean(mm);mean(tt)];
+    BTSI=[meanMeanBTSI(end)-meanMeanBTSI(end-1);prctile(aa,50);prctile(mm,50);prctile(tt,50)];
+    BTSI25=[prctile(meanBTSI(:,end)-meanBTSI(:,end-1),2.5);prctile(aa,2.5);prctile(mm,2.5);prctile(tt,2.5)];
+    BTSI975=[prctile(meanBTSI(:,end)-meanBTSI(:,end-1),97.5);prctile(aa,97.5);prctile(mm,97.5);prctile(tt,97.5)];
     
-    reconstructions=table(CPMDF,Comm_Con,ROB,NRL,SAT,AR6,BTSI);
+    reconstructions=table(CPMDF,Comm_Con,ROB,NRL,SAT,AR6,BTSI,BTSI25,BTSI975)
 end
 if table2
     clear tabout
+    offsets([3;4;5;6;7;8;9;10;11;12])=offsets([3;4;5;6;7;8;9;10;11;12])-offsets(9);
+    table2order=[3;4;5;6;7;8;9;10;11;12;1;2];
+    T0=outDat.T0(lI(table2order));
+    th0=outDat.th0(lI(table2order))';
+    e0=sqrt(th0./(T0'-1));
     for ii=1:length(colLabels)
-        table2order=[3;4;5;6;7;8;9;10;11;12;1;2];
         ind=table2order(ii);
         Asub=squeeze(A(ind,:,:));
-        tabout(:,ii)=[prctile(Asub(1,:),[2.5 50 97.5])'+offsets(ind)-offsets(9);prctile(Asub(3,:),[2.5 50 97.5])';prctile(sqrt(sigY(ind,:))./Asub(2,:),[2.5 50 97.5])'];
+        tabout(:,ii)=[offsets(ind);prctile(Asub(1,:).*scaling(ind),[2.5 50 97.5])'+offsets(ind);...
+            outDat.H0(ind,2).*scaling(ind);prctile(Asub(2,:).*scaling(ind),[2.5 50 97.5])';...
+            prctile(Asub(3,:),[2.5 50 97.5])';...
+            e0(ii)./outDat.H0(ind,2);prctile(sqrt(sigY(ind,:))./Asub(2,:),[2.5 50 97.5])'];
     end
-    rows=["mean 2.5";"mean 50";"mean 97.5";"drift 2.5";"drift 50";"drift 97.5";"error 2.5";"error 50";"error 97.5"];
-    displayTable=array2table(tabout,'VariableNames',colLabels(table2order));
+    rows=["a_0";"mean 2.5";"mean 50";"mean 97.5";"b_0";...
+        "scaling 2.5";"scaling 50";"scaling 97.5";...
+        "drift 2.5";"drift 50";"drift 97.5";"\epsilon_0";"error 2.5";"error 50";"error 97.5"];
+    displayTable=array2table(tabout,'VariableNames',colLabels(table2order),'RowNames',rows)
 end
 if btsiCompareTable
     %Produce table of TSI behavior for different alternatives, including
@@ -752,6 +786,12 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if uncBTSI
+    alpha=0.95; %CI width for analysis
+    tsix = quantile(xAll,[(1-alpha)/2,1-(1-alpha)/2],2);
+    figure
+    plot(dateM,tsix(:,2)-tsix(:,1))
+end
 if solarvsanthroforcing
     stYr=1978;endYr=2021;
     %Calculate contribution from BTSI solar forcing

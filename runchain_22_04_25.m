@@ -1,4 +1,4 @@
-function [xAll,sigY,sigX,theta,a,A,tau,outDat] = runchain_22_04_25(valM,oM,colLabels,opts)
+function [xAll,sigY,sigX,theta,a,A,tau,outDat] = runchain_22_04_25(valM,oM,dateM,colLabels,opts)
 %runchain_22_04_25.m PRODUCE GIBBS SAMPLING OUTPUT OF BAYESIAN KALMAN
 %FILTER MODEL USING SATLELLITE AND PROXY DATA.
 %
@@ -14,20 +14,21 @@ function [xAll,sigY,sigX,theta,a,A,tau,outDat] = runchain_22_04_25(valM,oM,colLa
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 outDat.script=mfilename; %Save name of script
 if ~exist('valM','var') || isempty(valM) %Load default observation array, otherwise load provided one
-    obsmatrix='obs_22_11_03'; %Load data array, with colLabels corresponding to observer source for each column
+    obsmatrix='obs_23_03_27'; %Load data array, with colLabels corresponding to observer source for each column
     load(obsmatrix); %From makeobsmatrix.m
 else
-     obsmatrix='synthetic';
+     obsmatrix=opts.obsmatrix;
 end
-load(obsmatrix); %From makeobsmatrix.m
+opts.valM=valM;
+opts.oM=oM;
+opts.dateM=dateM;
+
+    
 %Create default settings if not specified
 opts = checkopts(opts);
-
 %Develop a set of monthly observations from satellite and proxy
 %observations
 dateS=getdates;
-dates=dateS.all;
-dateCycles=dateS.cycles;
 
 
 
@@ -49,7 +50,7 @@ dateCycles=dateS.cycles;
 % Beginning of main script
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if opts.excludeFliers %Code to remove outliers using a past run of BTSI
-    load excludeMask_22_11_03.mat %from exclude_fliers_22_04_26.m
+    load excludeMask_23_03_27.mat %from exclude_fliers_22_04_26.m
     valM(excludeMask) = NaN;
     oM(excludeMask) = false;
 end
@@ -60,12 +61,25 @@ if opts.satOnly
     %tindex=[1 1 1 0 1 1 1 0 1 1 1 1]; %tindex= satellite drift
     pindex=[0 0 0 1 0 0 0 1 0 0 0 0]; %sindex=1 for observers with non-identity scaling to TSI, 0 otherwise
     oM(:,logical(pindex))=false; %Eliminate use of observations from proxies
+elseif opts.satOnlyDrift
+    %Satellite-only variation
+    oindex=[1 1 1 1 1 1 1 1 0 1 1 1]; %oindex=1 for observers with varying offset, 0 for fixed
+    tindex=[1 1 1 0 1 1 1 0 1 1 1 1]; %tindex= satellite drift
+    pindex=[0 0 0 1 0 0 0 1 0 0 0 0]; %sindex=1 for observers with non-identity scaling to TSI, 0 otherwise
+    oM(:,logical(pindex))=false; %Eliminate use of observations from proxies
 elseif opts.proxyModel
     %NRLTSI2 version
-    oindex=[1 1 1 1 1 1 1 1 1 1 1 0]; %oindex=1 for observers with varying offset, 0 for fixed
+    oindex=[1 1 1 1 1 1 1 1 0 1 1 1]; %oindex=1 for observers with varying offset, 0 for fixed
     tindex=[0 0 0 0 0 0 0 0 0 0 0 0]; %tindex=1 for observers with time dependent drift, 0 otherwise
     pindex=[0 0 0 1 0 0 0 1 0 0 0 0]; %sindex=1 for observers with non-identity scaling to TSI, 0 otherwise
-    oM(:,[1 2 3 5 6 7 9 10 11])=false; %Eliminate use of observations from eliminated sources
+    oM(:,[1 2 3 5 6 7 10 11 12])=false; %Eliminate use of observations from eliminated sources
+    dateI=dateM.Year >= 2003 & dateM.Year <= 2014;
+    oM(~dateI,9)=false;
+elseif opts.virgo
+    %Set SOHO/VIRGO as reference satellite
+    oindex=[1 1 1 1 1 1 1 1 1 1 1 0]; %oindex=1 for observers with varying offset, 0 for fixed
+    tindex=[1 1 1 0 1 1 1 0 1 1 1 1]; %tindex=1 for observers with time dependent drift, 0 otherwise
+    pindex=[0 0 0 1 0 0 0 1 0 0 0 0]; %sindex=1 for observers with non-identity scaling to TSI, 0 otherwise
 else
     %Specify priors for H coefficients
     oindex=[1 1 1 1 1 1 1 1 0 1 1 1]; %oindex=1 for observers with varying offset, 0 for fixed
@@ -73,6 +87,25 @@ else
     pindex=[0 0 0 1 0 0 0 1 0 0 0 0]; %sindex=1 for observers with non-identity scaling to TSI, 0 otherwise
 end
 satindex=~pindex;
+%Remove removed observers
+keepI=sum(oM,1)~=0;
+valM=valM(:,keepI);oM=oM(:,keepI);oindex=oindex(keepI);tindex=tindex(keepI);
+pindex=pindex(keepI);satindex=satindex(keepI);colLabels=colLabels(keepI);
+
+if isfield(opts,'normalize') && opts.normalize %Normalize proxy variables for matrix calculations
+    scaling=ones(size(valM,2),1);
+    offset=zeros(size(valM,2),1);
+    proxies=find(pindex);
+    for ii=1:length(proxies)
+        scaling(proxies(ii))=nanstd(valM(oM(:,proxies(ii)),proxies(ii)));
+        offset(proxies(ii))=nanmean(valM(oM(:,proxies(ii)),proxies(ii)));
+        valM(:,proxies(ii))=(valM(:,proxies(ii))-offset(proxies(ii)))./scaling(proxies(ii));
+    end
+    outDat.offset=offset;
+    outDat.scaling=scaling;
+end
+
+
 tsi.data = valM;
 tsi.dateM=dateM;
 tsi.oM=oM;
@@ -92,16 +125,21 @@ for ii=1:tsi.NN
 end
 tsi.tau=tau;
 tsi.tDependence=true; %Set to true to use drift predictor
+tsi.magDependent=opts.magDependent; %True to use heteroscedastic TSI innovation
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %step 1: establish starting values and priors
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Load priors for observation model
-[tsi.H0, tsi.Hsig, T0, th0,tsi.Xprior,tsi.Xsig] = getpriors(tsi.NN,oindex,tindex,pindex,valM,oM,...
-    satindex,colLabels,opts,[],tsi.dateM);
+[tsi.H0, tsi.Hsig, T0, th0,tsi.eta0,tsi.Xsig] = getpriors(tsi.NN,oindex,tindex,pindex,valM,oM,...
+    satindex,colLabels,opts,[],dateM);
 
-
+if opts.proxyModel
+    th0(3)=0.2688; %Give SORCE/TIM the th0 estimate one gets from whole model
+    tsi.H0(1:2,2)=[1.8588;1.7844];
+    tsi.Hsig(1:2,2)=ones(2,1).*1E-5;
+end
 %get an intial guess for the process
 x0=zeros(tsi.T,1);
 guess1 = nanmean(tsi.data(:,~pindex),2); %mean of satellite observations
@@ -116,8 +154,6 @@ tsi.ns=size(tsi.X0,2);
 tsi.V00=eye(tsi.ns);  %v[t-1|t-1]
 tsi.rmat=1E9.*ones(tsi.NN,1); %arbitrary starting value for the variance of process x
 tsi.Sigma=eye(tsi.N);  %arbitrary starting value for the variance of transition model errors
-%Save the records of contributions to innovation at each time i
-contributionChain = NaN(tsi.T,tsi.NN);
 
 %Prepare arrays to be saved
 NS=opts.reps-opts.burn;
@@ -138,30 +174,25 @@ for m=1:opts.reps %Gibbs sampling
 %step 2: sample loadings that compose H through Bayesian regression
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 [hload,errorN,infI]=coeffsample(tsi,opts);
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%step 3: sample variance of the observers from inverse gamma distribution
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 [tsi.rmat,th] = epsiloninvgamma(T0,th0,infI,errorN,tsi.NN);
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %step 4: sample estimates of autoregressive parameters alpha
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 [tsi.alpha,tsi.X,tsi.Y]=arsample(tsi,opts.cmpStYr);
 %sample VAR covariance for time-dependent X uncertainty
-[tsi.Sigma,mSigma,bSigma]=epsilonmagdependent(tsi.x0,tsi.X,tsi.alpha,tsi.Xprior,tsi.Xsig);
-
-
+[tsi.Sigma,mSigma,bSigma]=epsilonmagdependent(tsi);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %step 5: Run Kalman filter to estimate x
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 tsi.hload=hload;
 opts.nonLin=false;
-[tsi.x0,tsi.contributionChain,tsi.x2,tsi.F,tsi.H]=carterkohn(tsi,opts,m);
-
-
+[tsi.x0,contributionChain,tsi.x2,tsi.F,tsi.H]=carterkohn(tsi,opts,m);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %step 7: If burnin completed, store state and observation model estimates
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 if opts.dispProgress
     if mod(m,100) == 0 %display progress of chain
         disp([num2str(m) ' reps completed'])
@@ -187,15 +218,14 @@ if m>opts.burn
     mm=mm+1;
 end
     
-
 end
 if opts.dispProgress
-    toc
+   outDat.tElapsed=toc
 end
-
-
+opts.colLabels=colLabels;
 outDat.H0=tsi.H0;outDat.Hsig=tsi.Hsig;outDat.T0=T0;outDat.th0=th0;
-outDat.oindex=oindex;outDat.tindex=tindex;outDat.pindex=pindex;
+outDat.Xprior=tsi.eta0;outDat.Xsig=tsi.Xsig;
+outDat.oindex=oindex;outDat.tindex=tindex;outDat.sindex=pindex;
 outDat.satindex=satindex;
 outDat.obsmatrix=obsmatrix;
 outDat.opts=opts; %Save the input info
