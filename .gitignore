@@ -1,0 +1,38 @@
+# .gitignore
+
+# Mac OS X
+.DS_Store
+.Trashes
+.Spotlight-V100
+._*
+.DocumentRevisions-V100
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.VolumeIcon.ico
+.localized
+
+# Directory chain_output/alt_output/
+chain_output/alt_output/
+
+# MATLAB
+*.asv
+*.m~
+*.mdl~
+*.bak
+*.autosave
+*.swp
+*~
+*.tmw
+*.tmw~
+
+# Ignore Simulink files
+*.slx~
+*.slddc
+*.slxp
+*.slx.orig
+*.slx.old
+*.slx.new
+
+# Ignore Simulink working folders
+slprj/
