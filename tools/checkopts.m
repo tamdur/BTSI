@@ -7,7 +7,7 @@ if ~isfield(optsIn,'randomizeChain') %Load default observation array, otherwise 
     optsIn.randomizeChain=false;
 end
 if ~isfield(optsIn,'excludeFliers')
-    optsIn.excludeFliers=false;%true to remove outlier observations from examined dataset
+    optsIn.excludeFliers=true;%true to remove outlier observations from examined dataset
 end
 if ~isfield(optsIn,'reps')
     optsIn.reps=10500; %Total steps of Gibbs Sampler
@@ -24,7 +24,24 @@ end
 if ~isfield(optsIn,'lags')
     optsIn.lags=2; %Set process to AR(2)
 end
-optsIn.normalize=false; %Set to true to normalize data within. For getpriors call
+if ~isfield(optsIn,'normalize')
+    optsIn.normalize=true; %Set to true to normalize data within. For getpriors call
+end
+if ~isfield(optsIn,'magDependent')
+    optsIn.magDependent=true; %Set to true to normalize data within. For getpriors call
+end
+if ~isfield(optsIn,'satOnly')
+    optsIn.satOnly=false; %Set to true to not use any proxy data
+end
+if ~isfield(optsIn,'proxyModel')
+    optsIn.proxyModel=false; %Set to true to calculate BTSI using only SORCE, proxies
+end
+if ~isfield(optsIn,'satOnlyDrift')
+    optsIn.satOnlyDrift=false; %true to turn on satellite-only model with drift turned on
+end
+if ~isfield(optsIn,'virgo')
+    optsIn.virgo=false; %true to set VIRGO to reference level satellite
+end
 optsIn.cmpStYr=1978;
 optsOut=optsIn;
 end

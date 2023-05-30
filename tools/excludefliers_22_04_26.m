@@ -14,23 +14,25 @@ excludeSig = 3; %number of standard deviations to set for exclusion criteria
 excludeVals.cutoff = cutoff; excludeVals.pVal = pVal; excludeVals.excludeSig=excludeSig;
 
 %Load data, with colLabels corresponding to observer source for each column
-load ar2_22_11_03_all.mat %Load a runchain output with no excision
+load ar2_23_03_27_all.mat %Load a runchain output with no excision
 load(outDat.obsmatrix)  %From makeobsmatrix.m
 reps=size(A,3);
-nObs=size(A,1);
+sindex=outDat.satindex;
+nObs=sum(sindex);
 T=size(xAll,1);
+valSat=outDat.opts.valM(:,sindex);
 %Get the output of predictions for each observer
 samples = 1000; %Number of drawn samples to make CI
-[ym,y5,y95,yAll] = estimatekalmanciy(A,xAll,sigY,t); 
+[ym,y5,y95,yAll] = estimatekalmanciy(A(sindex,:,:),xAll,sigY(sindex,:),tau(:,sindex)); 
 for ii = 1:nObs
-    rm(:,ii) = valM(:,ii)- ym(:,ii);
+    rm(:,ii) = valSat(:,ii)- ym(:,ii);
 end
 
 %Get the standard error for each observer
-SE = sqrt(mean(sigY,2));
+SE = sqrt(mean(sigY(sindex,:),2));
 
 excludeMask = false(size(valM));
-sI=find(outDat.tindex);
+sI=find(sindex);
 for ii = 1:length(sI) %Skip the proxies
     %First go through the beginning of each record
     satI = find(oM(:,sI(ii)));
@@ -38,7 +40,7 @@ for ii = 1:length(sI) %Skip the proxies
     pLow = []; pHigh = [];
     %Remove early interval if below cutoff
     for iL = 1:length(lowI)
-        [~,p] = ztest(rm(lowI(1:iL),sI(ii)),0,SE(sI(ii)));
+        [~,p] = ztest(rm(lowI(1:iL),ii),0,SE(ii));
         pLow(iL) = p;
     end
     if min(pLow) < pVal
@@ -48,7 +50,7 @@ for ii = 1:length(sI) %Skip the proxies
     
     %Remove late interval if below cutoff
     for iL = 1:length(highI)
-        [~,p] = ztest(rm(highI(end-iL+1:end),ii),0,SE(sI(ii)));
+        [~,p] = ztest(rm(highI(end-iL+1:end),ii),0,SE(ii));
         pHigh(iL) = p;
     end
     if min(pHigh) < pVal
@@ -65,7 +67,7 @@ end
 
 
 
-save('excludeMask_22_11_03.mat','excludeMask','excludeVals')
+save('excludeMask_23_03_27.mat','excludeMask','excludeVals')
 
 function [ym,y25,y975,yAll] = estimatekalmanciy(A,xAll,sigY,t)
 %Return a confidence interval for observation variable given hidden process

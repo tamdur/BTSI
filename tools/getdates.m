@@ -8,5 +8,5 @@ juliandate(datetime(2008,12,01)) juliandate(datetime(2019,11,31));
 juliandate(datetime(2019,12,01)) juliandate(datetime(2030,11,31))];
 
 dateS.allold = [juliandate(datetime(1976,03,01)) juliandate(datetime(2020,05,31))];
-dateS.all = [juliandate(datetime(1978,11,1)) juliandate(datetime(2021,11,30))];
+dateS.all = [juliandate(datetime(1978,11,1)) juliandate(datetime(2021,12,31))];
 end

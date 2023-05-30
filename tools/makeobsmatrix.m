@@ -8,10 +8,12 @@ dateS=getdates;
 dateR=dateS.all; %Load range of dates for which to incorporate observations
 removeOffsets=1; %1 to remove offsets from observations, 0 to keep native units
 satOnly=0; %1 to only use satellites, 0 to use proxies+satellites
-saveString= 'mat_files/obs_22_7_12.mat'; %Name of saved mat file
+saveString= 'mat_files/obs_23_05_10_pmod.mat'; %Name of saved mat file
 
-paths=dir('observations/*.txt');
+paths=dir('observations_pmod/*.txt');
 paths={paths.name};
+paths=paths(~contains(paths,'README')); %Don't try to read README
+
 
 %First make a vector for every month in the dataset
 stJD = min(dateR); endJD = max(dateR);
@@ -23,6 +25,7 @@ end
 dateM = dateM(1:end-1);
 dateMS = dateshift(dateM,'start','month');
 dateME = dateshift(dateM,'end','month');
+dateM=mean([dateMS,dateME],2);
 
 jdS = juliandate(dateMS);
 jdE = juliandate(dateME);
