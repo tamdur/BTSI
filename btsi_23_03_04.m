@@ -5,8 +5,9 @@
 
 clearvars
 mainExperiment=0; %Run full experiment that results in published results and figures
+diffAR=1; %Run experiment with ar1 or ar3 formulations
 pmodCorrections=0; %Run with Frohlich corrections
-NRLTSIcomp=1; %Run with just spots, faculae, SORCE
+NRLTSIcomp=0; %Run with just spots, faculae, SORCE
 virgo=0; %Run with VIRGO as reference satellite
 satOnly=0; %Run satellite only with no drift
 satOnlyDrift=0; %Run satellite only WITH drift
@@ -26,6 +27,23 @@ if mainExperiment
     opts.magDependent=true;
     opts.HsigScale=1; %Change the variance parameters of Hsig by scaling factor, 1 default
     opts.saveFile='chain_output/ar2_23_05_11_long.mat';
+    runchain_22_04_25([],[],[],[],opts);
+end
+if diffAR
+    opts.burn = 1000; %Number of burn-in reps assumed for chain length analysis
+    opts.reps=2000; %Total length of chain, including burn-in
+    opts.excludeFliers=true;%1 to remove outlier observations from examined dataset
+    opts.satOnly=false;%1 to ignore proxy data and only use satellites (no drift calculation), 0 otherwise
+    opts.proxyModel=0;%1 to use same datasets as NRLTSI2, 0 otherwise
+    opts.dispProgress=true;
+    opts.lags=3;
+    opts.NRLTSIprior=true;
+    opts.randomizeChain=false;
+    opts.logContributions=false;
+    opts.normalize=true;
+    opts.magDependent=true;
+    opts.HsigScale=1; %Change the variance parameters of Hsig by scaling factor, 1 default
+    opts.saveFile='chain_output/alt_output/ar3_23_06_01.mat';
     runchain_22_04_25([],[],[],[],opts);
 end
 if pmodCorrections

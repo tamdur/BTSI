@@ -12,14 +12,16 @@ clearvars
 satireCompare=0;%Examine relationship between SATIRE-S and BTSI, 0 otherwise
 btsiCompare=0; %Plot BTSI from default vs different BTSI formulations
 obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
-satsatcomp=1; %Plot overlapping satellite observation model predictions
+satsatcomp=0; %Plot overlapping satellite observation model predictions
 priorsposteriors=0; %Plot three figures for: prior/posterior offset, prior/posterior drift, prior/posterior standard error
 plotData=0;
+obsResiduals=0; %Plot the residual of observers relative to model prediction
+priorPosteriorSat=0; %Plot in one panel figures for: prior/posterior offset, prior/posterior drift, prior/posterior standard error
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TABLE CALCULATIONS
 table1=0; %Produce values for Table 1
 table2=0; %Produce values for Table 2
-btsiCompareTable=0; %Calculate solar constant and amplitude trends (w/ 95%CI) for alts
+btsiCompareTable=1; %Calculate solar constant and amplitude trends (w/ 95%CI) for alts
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
 uncBTSI=0; %Calculate and plot the uncertainty in BTSI
@@ -27,11 +29,11 @@ solarvsanthroforcing = 0;%Calculate global mean surface temperature effect from
                     %the proposed degree of additional solar radiative
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fSize = 12;
+fSize = 16;
 
 excludeFliers=1;
 
-load ar2_23_05_11_long.mat
+load ar2_23_05_11.mat
 dateStruct = getdates;
 startDate = datejd(dateStruct.all(1));
 endDate = datejd(dateStruct.all(2));
@@ -42,7 +44,7 @@ dates = [juliandate(datetime(1980,1,1)) juliandate(datetime(2021,12,31))]; %Use 
 load(outDat.obsmatrix); %From makeobsmatrix.m
 valMAll = valM;dateMAll=dateM;
 if excludeFliers %excludeFliers
-    load excludeMask_22_11_03.mat
+    load excludeMask_23_03_27.mat
     valM(excludeMask) = NaN;
     oM(excludeMask) = false;
     dateM=dateMAll;
@@ -54,16 +56,33 @@ end
 %VIRGO/SOHO, ACRIM3, TIM/SORCE, PREMOS/PICARD, TCTE, TSIS-1
 %Order as proxies followed by satellites in chronological order
 lI=[8;4;6;1;5;2;12;3;9;7;10;11];
+%Create alternative column labels for publication
+colLabels=[...
+    "SILSO";
+    "Bremen Mg-II";
+    "Nimbus-7/HF";
+    "SMM/ACRIM1";
+    "ERBS/ERBE";
+    "UARS/ACRIM2";
+    "SOHO/VIRGO"
+    "ACRIMSAT/ACRIM3";
+    "SORCE/TIM";
+    "Picard/PREMOS";
+    "TCTE/TIM";
+    "TSIS-1/TIM";
+    ];
 %sO=[7;3;6;4;12;5;9;8;10;11];
 %Reorder arrays used in this plotting script
 A=A(lI,:,:);
-colLabels=colLabels(lI);
 offsets=offsets(lI);
 oM=oM(:,lI);
 sigY=sigY(lI,:);
 tau=tau(:,lI);
 valM=valM(:,lI); valMAll=valMAll(:,lI);
+oMAll=~isnan(valMAll);
 scaling=outDat.scaling(lI);
+pindex=~outDat.satindex(lI);
+oindex=outDat.oindex(lI);
 
 
 %Colormap for plots
@@ -120,13 +139,18 @@ if satireCompare
     legend(h,legendtxt,'Location','NorthWest')
     legend boxoff
     set(gca,'FontSize',16)
-    saveas(gcf,'plots/satirebtsicompare_22_11_07.png')
+    [~,~,~,pthDate]=datechars;
+    savePth=['plots/satirebtsicompare_' pthDate '.png'];
+    saveas(gcf,savePth);
 end
 if btsiCompare
     showTrend = 1;
     smoothWindow = 6; %set smoothing (months)
     figure2('Position',[10 10 1000 1200])
-    
+    pause(.4);
+    set(gcf,'Position',[150 1050 1000 1200])
+    pause(.4); %Weird Matlab bug necessary to get it to plot in the second monitor
+    set(gcf,'Position',[150 1050 1000 1200])
     cColor = get(gca,'colororder');
     %Get CI of our estimate,plot
     tsix = prctile(xAll',[.5 5 50 95 99.5])';
@@ -143,42 +167,42 @@ if btsiCompare
         'LineStyle','none');
     
     %Get AR(1) reconstruction
-    load ar1_22_11_04.mat
+    load ar1_23_06_01.mat
     x1 = prctile(xAll',50)';
     x1 = smoothPH(x1,smoothWindow);
     [~,x10] = meaninterval(dateMAll,x1,1990,2010);
     x1 = x1-x10; 
     
     %Get AR(3) reconstruction
-    load ar3_22_11_04.mat
+    load ar3_23_06_01.mat
     x3 = prctile(xAll',50)';
     x3 = smoothPH(x3,smoothWindow);
     [~,x30] = meaninterval(dateMAll,x3,1990,2010);
     x3 = x3-x30; 
     
     %Get reconstruction keeping satellite artifacts
-    load ar2_22_11_03_all.mat
+    load ar2_23_03_27_all.mat
     xa = prctile(xAll',50)';
     xa = smoothPH(xa,smoothWindow);
     [~,xa0] = meaninterval(dateMAll,xa,1990,2010);
     xa = xa-xa0; 
-    
-    %Get reconstruction scaling proxies with 3 most recent cycles
-    load ar2_22_11_03_3cycle.mat
-    x3c = mean(xAll,2);
-    x3c = smoothPH(x3c,smoothWindow);
-    [~,x3c0] = meaninterval(dateMAll,x3c,1990,2010);
-    x3c = x3c-x3c0; 
+%     
+%     %Get reconstruction scaling proxies with 3 most recent cycles
+%     load ar2_22_11_03_3cycle.mat
+%     x3c = mean(xAll,2);
+%     x3c = smoothPH(x3c,smoothWindow);
+%     [~,x3c0] = meaninterval(dateMAll,x3c,1990,2010);
+%     x3c = x3c-x3c0; 
     
     %Get reconstruction using PMOD corrections
-    load ar2_22_11_04_pmodcorrections.mat
+    load ar2_23_05_10_pmodcorrections.mat
     xp = mean(xAll,2);
     xp = smoothPH(xp,smoothWindow);
     [~,xp0] = meaninterval(dateMAll,xp,1990,2010);
     xp = xp-xp0; 
     
     %Get reconstruction using VIRGO baseline
-    load ar2_22_11_04_VIRGO.mat
+    load ar2_23_05_10_virgo.mat
     xv = mean(xAll,2);
     xv = smoothPH(xv,smoothWindow);
     [~,xv0] = meaninterval(dateMAll,xv,1990,2010);
@@ -199,9 +223,9 @@ if btsiCompare
     h(ind)=plot(dateMAll,xa,'--','LineWidth',1.5);
     legendtxt(ind)="BTSI no artifact removal";
     ind=ind+1;
-    h(ind)=plot(dateMAll,x3c,'--','LineWidth',1.5);
-    legendtxt(ind)="BTSI 3 cycle regression";
-    ind=ind+1;
+%     h(ind)=plot(dateMAll,x3c,'--','LineWidth',1.5);
+%     legendtxt(ind)="BTSI 3 cycle regression";
+%     ind=ind+1;
     h(ind)=plot(dateMAll,xp,'--','LineWidth',1.5);
     legendtxt(ind)="BTSI PMOD satellite corrections";
     ind=ind+1;
@@ -215,7 +239,9 @@ if btsiCompare
     ylabel('TSI Anomaly (W/m^{2})')
     xlim([datetime(1978,1,1) datetime(2022,1,1)])
     ylim([-0.8 1.6])
-    saveas(gcf,'plots/tsialternatives_22_11_07.png')
+    [~,~,~,pthDate]=datechars;
+    savePth=['plots/tsialternatives_' pthDate '.png'];
+    saveas(gcf,savePth);
 end
 if obsContributions
      %Plot the relative contribution of each observer to the estimate of TSI
@@ -275,6 +301,8 @@ if satsatcomp
         end
     end
     figure2('Position',[10 10 2300 1300])
+    set(gcf,'Position',[100 1300 2300 1300])
+    set(gcf,'Position',[100 1300 2300 1300])
     tt = tiledlayout(7,6,'TileSpacing','Compact','Padding','Compact');
     ind=1;
     indD=1;
@@ -595,6 +623,221 @@ if plotData
   
     saveas(gcf,'plots/tsicompare_23_2_28.png')
 end
+if obsResiduals
+    %Make multi-panel plot of residual between model-expectation and the
+    %observed values.
+    sim = 1; %Simulation picked for plot
+    %First, calculate the percentage of time that each simulation spends
+    %inside of the 95% confidence interval
+    interval = 1; %Gap between realizations to be used (there's only 1 realization of reality)
+    plotOthers = 0; %Plot other reconstructions
+    [ym,y5,y95,yAll] = estimatekalmanciy(A,xAll,sigY,tau,scaling);
+    %Get the standard error for each observer
+    SE = sqrt(mean(sigY,2)).*scaling;
+    excludeSig = 3;
+    figure2('Position',[100 100 1400 800])
+    set(gcf,'Position',[100 1300 1400 800])
+    set(gcf,'Position',[100 1300 1400 800])
+    t = tiledlayout(3,4,'TileSpacing','Compact','Padding','Compact');
+    for ii = 1:size(valM,2)
+        nexttile
+        x2 = [dateM(1) dateM(end) dateM(end) dateM(1)];
+        y=excludeSig.*SE(ii);
+        fill(x2,[y y -y -y], [.85 .85 .85],'FaceAlpha',...
+        0.5,'LineStyle','none');
+        hold on
+        plot(dateMAll,valMAll(:,ii)-ym(:,ii),'.','Color','r')
+        hold on
+        plot(dateM,valM(:,ii)-ym(:,ii),'.','Color','k')
+        obsLabel = colLabels(ii);
+        ylabel([obsLabel " residual"])
+        set(gca,'FontSize',fSize)
+        iD=find(oMAll(:,ii));
+        xlim([dateMAll(iD(1)) dateMAll(iD(end))])
+        hold on
+        line([dateMAll(iD(1)) dateMAll(iD(end))],[0 0],'LineStyle','--','Color','k')
+    end
+    set(gca,'FontSize',fSize)
+    [~,~,~,pthDate]=datechars;
+    savePth=['plots/obsresiduals_' pthDate '.png'];
+    saveas(gcf,savePth);
+end
+if priorPosteriorSat
+    c=loadcolors;
+    satI=logical(outDat.satindex);
+    satI=satI(lI);
+    satindex=outDat.satindex;
+    oindex=outDat.oindex;
+    %Pull output from simulation
+    %reps = outDat.reps;
+    reps = size(A,3);
+    sC = squeeze(A(:,2,:));
+    bC = squeeze(A(:,1,:));
+    mC = squeeze(A(:,3,:));
+    aP = a;
+    sP = squeeze(sC(1:2,:))';
+    oP = squeeze(bC(1:12,:))';
+    lP = squeeze(mC(3:end,:))';
+    rP = sigY;
+    H0=outDat.H0(lI,:);
+    Hsig=outDat.Hsig(lI,:);
+    T0=outDat.T0(lI);
+    th0=outDat.th0(lI);
+    satindex=satindex(lI);
+    oindex=oindex(lI);
+    %Make the data that goes in the varpdf fields for each of 3 plots
+    
+    %First, do the offset variables
+    th1M1 = H0(:,1);
+    th2M1 = sqrt(Hsig(:,1));
+    vals1 = oP;
+    %Then, do the drift variables
+    linI=outDat.tindex;
+    linI=find(linI(lI));
+    varNames2 = colLabels(3:end);
+    th1M2 = H0(satI,3);
+    th2M2 = sqrt(Hsig(satI,3));
+    vals2 = lP;
+    %Last, do the noise variables
+    nN=length(colLabels); %Number of noisy observers
+    varNames3=[];
+    for ii = 1:nN
+        varNames3 = [varNames3;strcat("\epsilon_{",colLabels((ii)),"}")];
+    end
+    th1M3 = T0;
+    th2M3 = th0;
+    vals3 = rP'; 
+    vals3(vals3 <= 0) = NaN;
+    vals3 = vals3.^0.5;%Note 0.5 is choice to show std v var
+    distType3 = repmat("invgamma",[nN 1]);
+
+    %------------------------------------------------------------------
+    % First, plot estimated offsets 
+    %------------------------------------------------------------------
+    figure2('Position',[150 150 1500 1000])
+    pause(.4);
+    set(gcf,'Position',[150 1050 1500 1000])
+    pause(.4); %Weird Matlab bug necessary to get it to plot in the second monitor
+    set(gcf,'Position',[150 1050 1500 1000])
+    subplot('position',[.09 .715 .85 .26])
+    offsetsI=find(and(satindex,oindex));
+    otI=find(and(satI,oindex));
+    for ii = 1:length(offsetsI)
+        hold on
+        th1 = th1M1(otI(ii)) + offsets(offsetsI(ii))';
+        th2 = th2M1(otI(ii));
+        %Plot the prior distribution
+        x = vals1;
+        xL = min(x);xH = max(x);
+        xPrior = randraw('norm', [th1 th2], [1e5 1] );
+        xL = min([xPrior; vals1(:,otI(ii))+ offsets(offsetsI(ii))]);
+        xH = max([xPrior;vals1(:,otI(ii))+ offsets(offsetsI(ii))]);
+        pEdges = linspace(xL,xH,1000);
+        [yP,xP] = histcounts(xPrior,pEdges); 
+        [xP,yP,~] = histtoplot(yP,xP,50);
+        %Plot the prior
+        h(ii)=plot(xP,yP,'Color',c(ii,:),'LineWidth',2);
+        %Plot the posterior distribution
+        [yPost,xPost] = histcounts(vals1(:,ii)+ offsets(offsetsI(ii)),pEdges); 
+        [xPost,yPost,~] = histtoplot(yPost,xPost,10);
+        hold on
+        plot(xPost,yPost,'Color',c(ii,:),'LineWidth',2)
+    end
+    sorceI=find(strcmp('SORCE/TIM',colLabels));
+    h(ii+1)=line([offsets(sorceI) offsets(sorceI)],[0 7.5],'Color','k','LineWidth',2);
+    legend(h,[colLabels(offsetsI);colLabels(sorceI)],'Location','NorthWest')
+    legend boxoff
+    xlabel("W/m^{2}")
+    set(gca,'ytick',[])
+    set(gca,'FontSize',fSize)
+    xlim([1358.5 1372])
+    ylim([0 9.35])
+    text(1358.65,9.85,'(a)','FontSize',fSize+6)
+    %------------------------------------------------------------------
+    % Next, plot estimated linear drifts 
+    %------------------------------------------------------------------
+    subplot('position',[.09 .39 .85 .26])
+    numPlots = length(varNames2);
+    for ii = 1:numPlots
+        hold on
+        th1 = th1M2(ii);
+        th2 = th2M2(ii);
+        %Plot the prior distribution
+        x = vals2;
+        xL = min(x);xH = max(x);
+        xPrior = randraw('norm', [th1 th2], [1e5 1] );
+        xL = min([xPrior; vals2(:,ii)]);
+        xH = max([xPrior; vals2(:,ii)]);
+        %Plot the prior
+        pEdges = linspace(xL,xH,900);
+        [yP,xP] = histcounts(xPrior,pEdges);
+        [xP,yP,~] = histtoplot(yP,xP,50);
+        %Plot the posterior distribution
+        [yPost,xPost] = histcounts(vals2(:,ii),pEdges); 
+        [xPost,yPost,~] = histtoplot(yPost,xPost,20);
+        hold on 
+        h(ii)=plot(xPost,yPost,'Color',c(ii,:),'LineWidth',3);
+    end
+    h(ii+1)=plot(xP,yP,'Color','k','LineWidth',5);
+    legendtxt=[colLabels(linI);"Prior Distribution"];
+    legend(h,legendtxt,'Location','NorthWest','NumColumns',2)
+    legend boxoff
+    %xlim([quantile(vals2(:,ii),0.001) quantile(vals2(:,ii),0.999)])
+    xlabel("W/m^{2} per decade")
+    set(gca,'ytick',[])
+    set(gca,'FontSize',fSize)
+    xlim([-0.7 0.7])
+    ylim([0 17])
+    text(-0.685,17.8,'(b)','FontSize',fSize+6)
+    %------------------------------------------------------------------
+    % Last, plot noise estimates
+    %------------------------------------------------------------------
+    subplot('position',[.09 .065 .85 .26])
+    numPlots = length(varNames3);
+    for ii = 1:numPlots
+        hold on
+        th1 = th1M3(ii);
+        th2 = th2M3(ii)./H0(ii,2);
+        %Plot the prior distribution
+        x = vals3(:,ii);
+        xL = min(x);xH = max(x);
+        %From randraw.m, form of drawing is y = randraw('gamma', [1 3 2], [1e5 1] );
+        %where inputs are location, shape, and scale parameters,
+        %respectively. Second input is number of draws
+        if strcmp(distType3(ii),"normal")
+            xPrior = randraw('norm', [th1 th2], [1e5 1] );
+            xPrior(xPrior < 0) = NaN;
+        else
+            xPrior = drawgamma(0, th1, th2, 1e5);
+        end
+        xPrior = xPrior.^0.5;
+        xL = max([min([xL-0.02; min(xPrior)]); 1e-5]);
+        xH = max([xH; xPrior]);
+        pEdges = logspace(log10(0.005),log10(0.6),200);
+        %Plot the posterior distribution
+        [yPost,xPost] = histcounts(vals3(:,ii)./squeeze(A(ii,2,:)),pEdges); 
+        [xPost,yPost,~] = histtoplot(yPost,xPost,50);
+        hold on
+        if ii==1 || ii==2
+            cc=get(gca,'ColorOrder');
+            plot(xPost,yPost,'--','Color',cc(ii,:),'LineWidth',3);
+        else
+            plot(xPost,yPost,'Color',c(ii-2,:),'LineWidth',3);
+        end
+    end
+    legend(varNames3,'Location','NorthEast','NumColumns',2)
+    legend boxoff
+    %xlim([0 0.35])
+    set(gca,'ytick',[])
+    set(gca,'Xtick',linspace(0,0.5,6))
+    xtickformat('%.2f')
+    xlabel("W/m^{2}")
+    set(gca,'FontSize',fSize)
+    text(0.006,73.5,'(c)','FontSize',fSize+6)
+    [~,~,~,pthDate]=datechars;
+    savePth=['plots/priorposterior_' pthDate '.png'];
+    saveas(gcf,savePth);
+end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -722,65 +965,75 @@ if btsiCompareTable
     %solar constant trend
     model=[];min=[];amp=[];total=[];
     warning('off','MATLAB:rankDeficientMatrix') %Some realizations for quant_reg are rank deficient
-    intI=dateM>=datejd(dates(1))&dateM<=datejd(dates(2));
+    %intI=dateM>=datetime(1980,2,1)&dateM<=datetime(2015,10,31); %2/1980--10/2015
+     intI=dateM>=datetime(1978,11,1)&dateM<=datetime(2021,12,31); %11/1978--12/2021
     
     
     
     %First entry is default
     [min95,amp95,total95]=getaltstats(dateM(intI),xAll(intI,:));
     [min,amp,total,model]=appendaltstats(min,amp,total,model,min95,amp95,total95,"BTSI Default");
-    xM=xMLR; %Save for proxy-model version at end
+    %Get reconstruction using proxy-model
+    if ~exist('xMLR','var')
+        [xMLR,~] = makexmlr(dateM,pindex,oindex,valM,xAll,offsets);
+    end
+    %xM=xMLR; %Save for proxy-model version at end
     %Get AR(1) reconstruction
-    load ar1_22_11_04.mat
+    load ar1_23_06_01.mat
     [min95,amp95,total95]=getaltstats(dateM(intI),xAll(intI,:));
     [min,amp,total,model]=appendaltstats(min,amp,total,model,min95,amp95,total95,"AR(1)");
     
     %Get AR(3) reconstruction
-    load ar3_22_11_04.mat
+    load ar3_23_06_01.mat
     [min95,amp95,total95]=getaltstats(dateM(intI),xAll(intI,:));
     [min,amp,total,model]=appendaltstats(min,amp,total,model,min95,amp95,total95,"AR(3)");
     
     %Get reconstruction keeping satellite artifacts
-    load ar2_22_11_03_all.mat
+    load ar2_23_03_27_all.mat
     [min95,amp95,total95]=getaltstats(dateM(intI),xAll(intI,:));
     [min,amp,total,model]=appendaltstats(min,amp,total,model,min95,amp95,total95,"No artifact removal");
     
     %Get reconstruction scaling proxies with 3 most recent cycles
-    load ar2_22_11_03_3cycle.mat
-    [min95,amp95,total95]=getaltstats(dateM(intI),xAll(intI,:));
-    [min,amp,total,model]=appendaltstats(min,amp,total,model,min95,amp95,total95,"3 cycle regression");
+%     load ar2_22_11_03_3cycle.mat
+%     [min95,amp95,total95]=getaltstats(dateM(intI),xAll(intI,:));
+%     [min,amp,total,model]=appendaltstats(min,amp,total,model,min95,amp95,total95,"3 cycle regression");
     
     %Get reconstruction using PMOD corrections
-    load ar2_22_11_04_pmodcorrections.mat
+    load ar2_23_05_10_pmodcorrections.mat
     [min95,amp95,total95]=getaltstats(dateM(intI),xAll(intI,:));
     [min,amp,total,model]=appendaltstats(min,amp,total,model,min95,amp95,total95,"PMOD satellite corrections");
     
     
     %Get reconstruction using VIRGO baseline
-    load ar2_22_11_04_VIRGO.mat
-    
+    load ar2_23_05_10_virgo.mat
     [min95,amp95,total95]=getaltstats(dateM(intI),xAll(intI,:));
     [min,amp,total,model]=appendaltstats(min,amp,total,model,min95,amp95,total95,"VIRGO baseline");
     
     %Get reconstruction using satellite-only, drift allowed
-    load ar2_22_11_04_satdrift.mat
+    load ar2_23_05_10_satonlydrift.mat
     [min95,amp95,total95]=getaltstats(dateM(intI),xAll(intI,:));
     [min,amp,total,model]=appendaltstats(min,amp,total,model,min95,amp95,total95,"Sat. only w/ drift");
     
     %Get reconstruction using satellite-only, no drift allowed
-    load ar2_22_11_04_satnodrift.mat
+    load ar2_23_05_10_satonly.mat
     [min95,amp95,total95]=getaltstats(dateM(intI),xAll(intI,:));
     [min,amp,total,model]=appendaltstats(min,amp,total,model,min95,amp95,total95,"Sat. only w/o drift");
     
-    %Get reconstruction using proxy-model
-    eI=sum(isnan(xM),2)==0;
-    xMM=xM(eI,:);dateMM=dateM(eI);
-    intII=intI(eI);
-    [min95,amp95,total95]=getaltstats(dateMM(intII),xMM(intII,:));
+    
+%     % load('ar2_23_05_10_nrltsicomp.mat')
+%     xmmlr=mean(xMLR,2);
+%     [~,xmmlrO] = meaninterval(dateMAll,xmmlr,1990,2010);
+%     xmmlr = xmmlr-xmmlrO;
+% 
+    %Proxy model mirroring NRLTSI2
+    eI=sum(isnan(xMLR),2)==0;
+%     xMM=xMLR(eI,:);dateMM=dateM(eI);
+%     intII=intI(eI);
+    [min95,amp95,total95]=getaltstats(dateM(eI),xMLR(eI,:));
     [min,amp,total,model]=appendaltstats(min,amp,total,model,min95,amp95,total95,"Proxy model");
     
     %Make table from results
-    compare=table(model,amp,min,total);
+    compare=table(model,amp,min,total)
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -866,6 +1119,36 @@ function [cycleAvg]=cyclestats(x,dates)
     for ii=1:size(dates,1)
         cycleAvg(ii)=nanmean(x(cycI));
     end
+end
+function [ym,y25,y975,yAll] = estimatekalmanciy(A,xAll,sigY,tau,scaling)
+%Return a confidence interval for observation variable given hidden process
+%
+%   INPUTS:
+%           sIn: sIn object returned by gibbstests.m 
+%           A: A parameter object returned by gibbstests.m
+%           xAll: Estimates of hidden process
+%           sigY: A parameter object for sigma of observers returned by gibbstests.m
+%           rI: the realization from a multi-realization simulation to be
+%               used
+
+%values to be shared by all iterations
+%t(t==0)=NaN;
+reps=size(A,3);
+nObs=size(A,1);
+T=size(xAll,1);
+yAll = NaN(nObs,T,reps);
+for ii=1:reps
+    Xi=[ones(T,1) xAll(:,ii) ones(T,1)];
+    for iN = 1:nObs
+        Xi(:,3)=tau(:,iN);
+        yAll(iN,:,ii) = Xi*squeeze(A(iN,:,ii).*scaling(iN))'+ randn(T,1).*(sqrt(sigY(iN,ii)).*scaling(iN));
+    end
+end
+
+ym = mean(yAll,3)';
+y25 = quantile(yAll,0.025,3)';
+y975 = quantile(yAll,0.975,3)';
+
 end
 function [setAvg]=setstats(x,dateI)
     %Return average of input x over the indexed values provided

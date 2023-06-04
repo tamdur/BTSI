@@ -19,10 +19,6 @@ if ~exist('valM','var') || isempty(valM) %Load default observation array, otherw
 else
      obsmatrix=opts.obsmatrix;
 end
-opts.valM=valM;
-opts.oM=oM;
-opts.dateM=dateM;
-
     
 %Create default settings if not specified
 opts = checkopts(opts);
@@ -54,6 +50,9 @@ if opts.excludeFliers %Code to remove outliers using a past run of BTSI
     valM(excludeMask) = NaN;
     oM(excludeMask) = false;
 end
+opts.valM=valM;
+opts.oM=oM;
+opts.dateM=dateM;
 if opts.satOnly
     %Satellite-only variation
     oindex=[1 1 1 1 1 1 1 1 0 1 1 1]; %oindex=1 for observers with varying offset, 0 for fixed

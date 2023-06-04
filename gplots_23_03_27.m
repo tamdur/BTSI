@@ -9,9 +9,10 @@ clearvars
 
 
 tsiComparison = 0; %Set to 1 to plot Figure 1 of manuscript
-cycleMin = 1; %Set to 1 to plot Figure 2 of manuscript
+cycleMin = 0; %Set to 1 to plot Figure 2 of manuscript
 tsiSunspots=0; %Set to 1 to plot Figure 3 of manuscript
 tsiSunspotsDetail=0; %Set to 1 to plot detail of Figure 3 of manuscript
+cycleShift=1; %Set to 1 to plot change in TSI between cycle minima
 
 fSize = 16;
 
@@ -438,6 +439,61 @@ if tsiSunspotsDetail
     ylim([0 50])
     set(gca,'FontSize',fSize+10)
     saveas(gcf,'plots/tsispotsdetail_23_03_27.png')
+end
+if cycleShift
+    %first, select for datetimes when SILSO spot count is less than 5
+    sptI=find(strcmp(colLabels,"SILSO")); %Get column of SILSO observations
+    lowI=(valM(:,sptI)+offsets(sptI))<5;
+    dateS=getdates;
+    low24=and(lowI,dateM.Year<2025 & dateM.Year > 2015);
+    low23=and(lowI,dateM.Year<2015 & dateM.Year > 2003);
+    low22=and(lowI,dateM.Year<2000 & dateM.Year > 1990);
+    low21=and(lowI,dateM.Year<1990 & dateM.Year > 1980);
+    
+    %Control for slight differences in low sunspot regimes by subtracting
+    %expected TSI difference predicted by sunspots
+    xCorr=xAll-((repmat(valM(:,1),[1 size(A,3)])-min(valM(:,1)))./...
+        outDat.scaling(8))./squeeze(A(1,2,:))';
+    diff2423=mean(xCorr(low24,:),1)-mean(xCorr(low23,:),1);
+    diff2422=mean(xCorr(low24,:),1)-mean(xCorr(low22,:),1);
+    diff2421=mean(xCorr(low24,:),1)-mean(xCorr(low21,:),1);
+    figure2('Position',[110 110 800 500])
+    %First do end of cycle 24 minus 23
+    pEdges = linspace(-0.35,0.05,1000);
+    [y1,x1] = histcounts(diff2423,pEdges);
+    [x1,y1,~] = histtoplot(y1,x1,50);
+    hold on
+    plot(x1,y1,'Color',c(1,:),'LineWidth',2.5)
+    
+    %Then do end of cycle 24 minus 22
+    pEdges = linspace(-0.35,0.05,1000);
+    [y2,x2] = histcounts(diff2422,pEdges);
+    [x2,y2,~] = histtoplot(y2,x2,100);
+    hold on
+    plot(x2,y2,'Color',c(2,:),'LineWidth',2.5)
+    
+    %Then do end of cycle 24 minus 21
+    pEdges = linspace(-0.35,0.05,1000);
+    [y3,x3] = histcounts(diff2421,pEdges);
+    [x3,y3,~] = histtoplot(y3,x3,100);
+    hold on
+    plot(x3,y3,'Color',c(3,:),'LineWidth',2.5)
+    xlabel('\Delta TSI (W/m^{2})')
+    ylabel('PDF')
+    legend('Cycle 24 - Cycle 23','Cycle 24 - Cycle 22','Cycle 24 - Cycle 21','Location','NorthWest')
+    legend boxoff
+    set(gca,'FontSize',fSize)
+    [~,~,~,pthDate]=datechars;
+    savePth=['plots/mindiff_' pthDate '.png'];
+    saveas(gcf,savePth);
+    
+    
+%     histogram(diff2423,'BinWidth',0.01)
+%     hold on
+%     histogram(diff2422,'BinWidth',0.01)
+%     hold on
+%     histogram(diff2421,'BinWidth',0.01)
+%     legend('23','22','21')
 end
 
 
