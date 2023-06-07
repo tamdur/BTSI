@@ -36,3 +36,6 @@ chain_output/alt_output/
 
 # Ignore Simulink working folders
 slprj/
+
+#Ignore directories with large files
+mat_files/large_files/

@@ -73,7 +73,7 @@ c23=datejd([dateStruct.cycles(3,:), fliplr(dateStruct.cycles(3,:))]);
 c25=datejd([dateStruct.cycles(5,:), fliplr(dateStruct.cycles(5,:))]);
 
 figure2('Position',[10 10 1000 1200])
-subplot('position',[.09 .85 .85 .13]) %Plot of proxy observations
+subplot('position',[.075 .85 .85 .13]) %Plot of proxy observations
 yyaxis left
 fill(c21,[0 0 350 350],[.96 .96 .863],'FaceAlpha',...
     0.4,'LineStyle','none');
@@ -95,8 +95,9 @@ xlim([datetime(1978,1,1) datetime(2022,1,1)])
 yyaxis left
 ylim([0 350])
 set(gca,'FontSize',fSize)
+text(datetime(1978,7,1),380,'(a)','FontSize',fSize+6)
 
-subplot('position',[.09 .575 .85 .25]) %Plot of satellite observations
+subplot('position',[.075 .565 .85 .245]) %Plot of satellite observations
 fill(c21,[1360 1360 1374 1374],[.96 .96 .863],'FaceAlpha',...
     0.4,'LineStyle','none');
 hold on
@@ -134,11 +135,12 @@ legend(hh,colLabels(3:end),'NumColumns',2)
 legend boxoff
 ylabel('TSI (W/m^{2})')
 set(gca,'FontSize',fSize)
+text(datetime(1978,7,1),1374.7,'(b)','FontSize',fSize+6)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Plot of reconstructions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-subplot('position',[.09 .04 .85 .50])
+subplot('position',[.075 .04 .85 .487])
 fill(c21,[-1.2 -1.2 1.8 1.8],[.96 .96 .863],'FaceAlpha',...
     0.4,'LineStyle','none');
 hold on
@@ -245,21 +247,24 @@ legend boxoff
 set(gca,'FontSize',fSize)
 xlabel('Year')
 ylabel('TSI anomaly from 1990-2010 mean (W/m^{2})')
-xlim([datetime(1980,2,1) datetime(2022,1,1)])
+xlim([datetime(1978,1,1) datetime(2022,1,1)])
 ylim([-0.9 1.25])
 text(datejd(dateStruct.cycles(1,1))+years(4.5),-0.8,'Cycle 21','FontSize',14)
 text(datejd(dateStruct.cycles(2,1))+years(3.25),-0.8,'Cycle 22','FontSize',14)
 text(datejd(dateStruct.cycles(3,1))+years(4.75),-0.8,'Cycle 23','FontSize',14)
 text(datejd(dateStruct.cycles(4,1))+years(4.25),-0.8,'Cycle 24','FontSize',14)
-saveas(gcf,'plots/tsicompare_23_05_11.png')
+text(datetime(1978,7,1),1.3,'(c)','FontSize',fSize+6)
+[~,~,~,pthDate]=datechars;
+    savePth=['plots/tsicompare_' pthDate '.png'];
+    saveas(gcf,savePth);
 end
 if cycleMin
     %First, calculate the percentage of time that each simulation spends
     %inside of the 95% confidence interval
 
     xAll=xAll'+offsets(9);xms=mean(xAll,1);
-    figure2('Position',[10 10 1500 900])
-    subplot('position',[.09 .31 .85 .68])
+    figure2('Position',[10 10 1300 900])
+    subplot('position',[.06 .30 .92 .66])
     trendInd=dateM>=datejd(dates(1))&dateM<datejd(dates(2));
     X = [ones(size(dateM(trendInd),1),1) juliandate(dateM(trendInd))];
     warning('off','MATLAB:rankDeficientMatrix') %Some realizations for quant_reg are rank deficient
@@ -294,7 +299,12 @@ if cycleMin
     ylabel('TSI (W/m^{2})')
     set(gca,'FontSize',fSize)
     box off
-    subplot('position',[.09 .07 .85 .18])
+    yticks(1360:1:1363)
+    ylim([1360 1363])
+    text(datetime(1979,1,1),1363.073,'(a)','FontSize',fSize+6)
+    
+    %Plot histograms
+    subplot('position',[.06 .06 .92 .18])
     histogram(b5(2,:).*(365.25*10),linspace(-.40,0.02,85),'FaceColor',c(2,:))
     hold on
     histogram(b95(2,:).*(365.25*10),linspace(-.40,0.02,85),'FaceColor',c(8,:))
@@ -304,7 +314,10 @@ if cycleMin
     xlabel('W/m^{2}/decade')
     xlim([-0.35 0])
     set(gca,'FontSize',fSize)
-    saveas(gcf,'plots/mincycle_23_05_13.png')
+    text(-0.349,size(xAll,1)./4.5455,'(b)','FontSize',fSize+6)
+    [~,~,~,pthDate]=datechars;
+    savePth=['plots/mincycle_' pthDate '.png'];
+    saveas(gcf,savePth);
 end
 if tsiSunspots
     xAll=xAll-nanmean(xAll(:));

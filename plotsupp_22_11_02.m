@@ -21,7 +21,8 @@ priorPosteriorSat=0; %Plot in one panel figures for: prior/posterior offset, pri
 % TABLE CALCULATIONS
 table1=0; %Produce values for Table 1
 table2=0; %Produce values for Table 2
-btsiCompareTable=1; %Calculate solar constant and amplitude trends (w/ 95%CI) for alts
+tableS5=1; %Produce analysis of coverage validation experiment 
+btsiCompareTable=0; %Calculate solar constant and amplitude trends (w/ 95%CI) for alts
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
 uncBTSI=0; %Calculate and plot the uncertainty in BTSI
@@ -33,7 +34,7 @@ fSize = 16;
 
 excludeFliers=1;
 
-load ar2_23_05_11.mat
+load ar2_23_05_11_long.mat
 dateStruct = getdates;
 startDate = datejd(dateStruct.all(1));
 endDate = datejd(dateStruct.all(2));
@@ -108,7 +109,7 @@ if satireCompare
     plotFlag3=1;
     dates1 = [datetime(1978,11,1) datetime(1999,1,31)]; %Period without magnetograms
     dates2 = [datetime(1999,2,1) datetime(2021,11,31)]; %Period with magnetograms
-    load oTSI_22_10_27.mat
+    load oTSI_23_02_01.mat
     tsiS = oTSI(5).mthtsi;
     dateS=oTSI(5).mthdatetime;
     dateS=dateshift(dateS,'start','month');
@@ -958,6 +959,41 @@ if table2
         "scaling 2.5";"scaling 50";"scaling 97.5";...
         "drift 2.5";"drift 50";"drift 97.5";"\epsilon_0";"error 2.5";"error 50";"error 97.5"];
     displayTable=array2table(tabout,'VariableNames',colLabels(table2order),'RowNames',rows)
+end
+if tableS5
+    load modeleval_23_06_05.mat
+    oTest=oTest(lI);
+    inCtAll=0;
+    allCtAll=0;
+    inCtTot=0;
+    allCtTot=0;
+    figure
+    for obs=1:12
+        %obs=2;%observer
+        nSim=size(oTest(obs).x,1);
+        inCt=zeros(size(valM,1),1);
+        allCt=zeros(size(valM,1),1);
+        for ii=1:nSim
+            iV=~isnan(oTest(obs).p(ii,:,1));
+            p=squeeze(oTest(obs).p(ii,iV,:));
+            iX=oTest(obs).iX(ii,iV);
+            ci95=prctile(p',[10 90]);
+            i95=ci95(1,:)<valM(iX,obs)' & valM(iX,obs)'<ci95(2,:);
+            inCt(iX(i95))=inCt(iX(i95))+1;
+            allCt(iX)=allCt(iX)+1;
+        end
+        inCtAll=inCtAll+sum(inCt);
+        allCtAll=allCtAll+sum(allCt);
+        inCtTot=inCtTot+inCtAll;
+        allCtTot=allCtTot+allCtAll;
+        col95Cov(obs)=inCtAll./allCtAll;
+        subplot(3,4,obs)
+        plot(dateM,inCt./allCt,'.')
+        titleStr=strcat(colLabels(obs)', ': ', num2str(100.*sum(inCt)./sum(allCt)), '%');
+        title(titleStr)
+        set(gca,'FontSize',16)
+    end
+    
 end
 if btsiCompareTable
     %Produce table of TSI behavior for different alternatives, including
