@@ -3,19 +3,26 @@
 % 10/25/22
 
 % %Necessary cluster operations:
-% folder = fileparts(which(mfilename));
-% addpath(genpath(folder));
-% parpool('local',str2num(getenv('SLURM_CPUS_PER_TASK')))
+folder = fileparts(which(mfilename));
+addpath(genpath(folder));
+parpool('local',str2num(getenv('SLURM_CPUS_PER_TASK')))
+usePMOD=1;
 
 rng(1)
-obsmatrix='obs_23_03_27.mat';
-load(obsmatrix); %From makeobsmatrix.m
-load excludeMask_23_03_27.mat %from exclude_fliers_22_04_26.m
+if ~usePMOD
+    obsmatrix='obs_23_03_27.mat';
+    load(obsmatrix); %From makeobsmatrix.m
+    load excludeMask_23_03_27.mat %from exclude_fliers_22_04_26.m
+else
+    obsmatrix='obs_23_05_10_pmod.mat';
+    load(obsmatrix); %From makeobsmatrix.m
+    load excludeMask_PMOD_23_06_09.mat %from exclude_fliers_22_04_26.m
+end
 valM(excludeMask) = NaN;
 oM(excludeMask) = false;
 fracEx=0.5; %Exclude this fraction of results
 reps=1000; %Length of kept chain
-tN=100; %Number of experiments per observer
+tN=2; %Number of experiments per observer
 
 %Set options to be the same as the mainExperiment in btsi_23_03_04.m
 opts.burn = 1000; %Number of burn-in reps assumed for chain length analysis
@@ -31,7 +38,12 @@ opts.logContributions=true;
 opts.normalize=true;
 opts.magDependent=true;
 opts.HsigScale=1; %Change the variance parameters of Hsig by scaling factor, 1 default
-opts.obsmatrix='obs_23_03_27.mat, half of an observer removed';
+if ~usePMOD
+    opts.obsmatrix='obs_23_03_27.mat, half of an observer removed';
+else
+    opts.obsmatrix='obs_23_03_27.mat, half of an observer removed';
+end
+
     
 parfor col=1:length(colLabels)
     tic;
@@ -75,4 +87,4 @@ parfor col=1:length(colLabels)
     oTest(col).x=xM;
     oTest(col).tRun=toc;
 end
-save('modeleval_23_06_05.mat','oTest')
+save('modelevalPMOD_23_06_09.mat','oTest')

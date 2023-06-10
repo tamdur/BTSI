@@ -16,12 +16,12 @@ satsatcomp=0; %Plot overlapping satellite observation model predictions
 priorsposteriors=0; %Plot three figures for: prior/posterior offset, prior/posterior drift, prior/posterior standard error
 plotData=0;
 obsResiduals=0; %Plot the residual of observers relative to model prediction
-priorPosteriorSat=0; %Plot in one panel figures for: prior/posterior offset, prior/posterior drift, prior/posterior standard error
+priorPosteriorSat=1; %Plot in one panel figures for: prior/posterior offset, prior/posterior drift, prior/posterior standard error
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TABLE CALCULATIONS
 table1=0; %Produce values for Table 1
 table2=0; %Produce values for Table 2
-tableS5=1; %Produce analysis of coverage validation experiment 
+tableS5=0; %Produce analysis of coverage validation experiment 
 btsiCompareTable=0; %Calculate solar constant and amplitude trends (w/ 95%CI) for alts
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
@@ -753,7 +753,7 @@ if priorPosteriorSat
     set(gca,'FontSize',fSize)
     xlim([1358.5 1372])
     ylim([0 9.35])
-    text(1358.65,9.85,'(a)','FontSize',fSize+6)
+    text(1358.65,9.85,'A','FontSize',fSize+6)
     %------------------------------------------------------------------
     % Next, plot estimated linear drifts 
     %------------------------------------------------------------------
@@ -789,7 +789,7 @@ if priorPosteriorSat
     set(gca,'FontSize',fSize)
     xlim([-0.7 0.7])
     ylim([0 17])
-    text(-0.685,17.8,'(b)','FontSize',fSize+6)
+    text(-0.685,17.8,'B','FontSize',fSize+6)
     %------------------------------------------------------------------
     % Last, plot noise estimates
     %------------------------------------------------------------------
@@ -833,8 +833,9 @@ if priorPosteriorSat
     set(gca,'Xtick',linspace(0,0.5,6))
     xtickformat('%.2f')
     xlabel("W/m^{2}")
+    ylim([0 70])
+    text(0.006,73.5,'C','FontSize',fSize+6)
     set(gca,'FontSize',fSize)
-    text(0.006,73.5,'(c)','FontSize',fSize+6)
     [~,~,~,pthDate]=datechars;
     savePth=['plots/priorposterior_' pthDate '.png'];
     saveas(gcf,savePth);

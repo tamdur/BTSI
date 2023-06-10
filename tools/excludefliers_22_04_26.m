@@ -14,7 +14,7 @@ excludeSig = 3; %number of standard deviations to set for exclusion criteria
 excludeVals.cutoff = cutoff; excludeVals.pVal = pVal; excludeVals.excludeSig=excludeSig;
 
 %Load data, with colLabels corresponding to observer source for each column
-load ar2_23_03_27_all.mat %Load a runchain output with no excision
+load ar2_23_05_10_pmodcorrections.mat %Load a runchain output with no excision
 load(outDat.obsmatrix)  %From makeobsmatrix.m
 reps=size(A,3);
 sindex=outDat.satindex;
@@ -67,7 +67,7 @@ end
 
 
 
-save('excludeMask_23_03_27.mat','excludeMask','excludeVals')
+save('excludeMask_PMOD_23_06_09.mat','excludeMask','excludeVals')
 
 function [ym,y25,y975,yAll] = estimatekalmanciy(A,xAll,sigY,t)
 %Return a confidence interval for observation variable given hidden process
