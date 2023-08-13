@@ -26,7 +26,7 @@ btsiCompareTable=0; %Calculate solar constant and amplitude trends (w/ 95%CI) fo
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
 uncBTSI=0; %Calculate and plot the uncertainty in BTSI
-solarvsanthroforcing = 0;%Calculate global mean surface temperature effect from 
+solarvsanthroforcing = 1;%Calculate global mean surface temperature effect from 
                     %the proposed degree of additional solar radiative
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -126,6 +126,7 @@ if satireCompare
     
     %Plot figure
     figure2('Position',[10 10 1000 800])
+    set(gcf, 'Color', 'w');
     h(1)=plot((btsi1-mean(btsi1)),(tsiS1-mean(tsiS1)),'.');
     hold on
     h(2)=plot((btsi2-mean(btsi2)),(tsiS2-mean(tsiS2)),'.');
@@ -147,14 +148,15 @@ end
 if btsiCompare
     showTrend = 1;
     smoothWindow = 6; %set smoothing (months)
-    figure2('Position',[10 10 1000 1200])
-    pause(.4);
-    set(gcf,'Position',[150 1050 1000 1200])
-    pause(.4); %Weird Matlab bug necessary to get it to plot in the second monitor
-    set(gcf,'Position',[150 1050 1000 1200])
+    figure2('Position',[10 10 750 900])
+    set(gcf, 'Color', 'w');
+%     pause(.4);
+%     set(gcf,'Position',[150 1050 1000 1200])
+%     pause(.4); %Weird Matlab bug necessary to get it to plot in the second monitor
+%     set(gcf,'Position',[150 1050 1000 1200])
     cColor = get(gca,'colororder');
     %Get CI of our estimate,plot
-    tsix = prctile(xAll',[.5 5 50 95 99.5])';
+    tsix = prctile(xAll',[2.5 10 50 90 97.5])';
     for iS = 1:size(tsix,2)
         tsix(:,iS) = smoothPH(tsix(:,iS),smoothWindow);
     end
@@ -242,7 +244,7 @@ if btsiCompare
     ylim([-0.8 1.6])
     [~,~,~,pthDate]=datechars;
     savePth=['plots/tsialternatives_' pthDate '.png'];
-    saveas(gcf,savePth);
+    %saveas(gcf,savePth);
 end
 if obsContributions
      %Plot the relative contribution of each observer to the estimate of TSI
@@ -258,6 +260,7 @@ if obsContributions
     
     %Plot
     figure2('Position',[10 10 1600 700])
+    set(gcf, 'Color', 'w');
     hold on
     ind=1;
     cp=colororder;
@@ -301,9 +304,10 @@ if satsatcomp
             end
         end
     end
-    figure2('Position',[10 10 2300 1300])
-    set(gcf,'Position',[100 1300 2300 1300])
-    set(gcf,'Position',[100 1300 2300 1300])
+    figure2('Position',[1 1 1600 900])
+    set(gcf, 'Color', 'w');
+%     set(gcf,'Position',[100 1300 2300 1300])
+%     set(gcf,'Position',[100 1300 2300 1300])
     tt = tiledlayout(7,6,'TileSpacing','Compact','Padding','Compact');
     ind=1;
     indD=1;
@@ -356,9 +360,9 @@ if satsatcomp
                 indD=indD+1;
                 set(gca,'FontSize',fSize)
                 if s1 < 6
-                    ylim([-0.6 0.6])
+                    ylim([-1.2 0.6])
                 else 
-                    ylim([-0.2 0.2])
+                    ylim([-0.35 0.2])
                 end
 %                 rangeSet=[residual2;residual1];
 %                 ylim([quantile(rangeSet,0.01),quantile(rangeSet,0.99)])
@@ -372,10 +376,10 @@ if satsatcomp
         indD=indD+1;
     end
     delete(tt.Children(53-deleteAxes))
-    saveas(gcf,'plots/satresidual_23_05_13.png')
+    %saveas(gcf,'plots/satresidual_23_05_13.png')
+    export_fig plots/satresidual_23_07_02.pdf
 end
 if priorsposteriors
-    datesave='23_04_26'; %Date for figure name
     %Pull output from simulation
     reps = size(A,3);
     sC = squeeze(A(:,2,:));
@@ -422,6 +426,7 @@ if priorsposteriors
     % First, plot estimated offsets 
     %------------------------------------------------------------------
     figure2('Position',[10 10 1600 600])
+    set(gcf, 'Color', 'w');
     %subplot('position',[.09 .7 .85 .27])
     offsetsI = [3:8 10:12]';
     numPlots = length(varNames1);
@@ -552,6 +557,7 @@ if plotData
     c25=datejd([dateStruct.cycles(5,:), fliplr(dateStruct.cycles(5,:))]);
     
     figure2('Position',[10 10 1000 1200])
+    set(gcf, 'Color', 'w');
     subplot('position',[.09 .53 .82 .45]) %Plot of satellite observations
     
      fill(c21,[1360 1360 1374 1374],[.96 .96 .863],'FaceAlpha',...
@@ -637,6 +643,7 @@ if obsResiduals
     SE = sqrt(mean(sigY,2)).*scaling;
     excludeSig = 3;
     figure2('Position',[100 100 1400 800])
+    set(gcf, 'Color', 'w');
     set(gcf,'Position',[100 1300 1400 800])
     set(gcf,'Position',[100 1300 1400 800])
     t = tiledlayout(3,4,'TileSpacing','Compact','Padding','Compact');
@@ -715,11 +722,12 @@ if priorPosteriorSat
     %------------------------------------------------------------------
     % First, plot estimated offsets 
     %------------------------------------------------------------------
-    figure2('Position',[150 150 1500 1000])
-    pause(.4);
-    set(gcf,'Position',[150 1050 1500 1000])
-    pause(.4); %Weird Matlab bug necessary to get it to plot in the second monitor
-    set(gcf,'Position',[150 1050 1500 1000])
+    figure2('Position',[1 1 1400 900])
+    set(gcf, 'Color', 'w');
+%     pause(.4);
+%     set(gcf,'Position',[150 1050 1500 1000])
+%     pause(.4); %Weird Matlab bug necessary to get it to plot in the second monitor
+%     set(gcf,'Position',[150 1050 1500 1000])
     subplot('position',[.09 .715 .85 .26])
     offsetsI=find(and(satindex,oindex));
     otI=find(and(satI,oindex));
@@ -838,7 +846,7 @@ if priorPosteriorSat
     set(gca,'FontSize',fSize)
     [~,~,~,pthDate]=datechars;
     savePth=['plots/priorposterior_' pthDate '.png'];
-    saveas(gcf,savePth);
+    %saveas(gcf,savePth);
 end
 
 

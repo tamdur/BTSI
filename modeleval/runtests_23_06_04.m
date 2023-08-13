@@ -5,6 +5,16 @@
 % %Necessary cluster operations:
 folder = fileparts(which(mfilename));
 addpath(genpath(folder));
+%Make sure everything is visible
+addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/BTSI')
+addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/BTSI/tools')
+addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/tools/gibbs_functions')
+addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/modeleval')
+addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/modeleval/alt_runs')
+addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/modeleval/three_scenario')
+addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/tools/BoE')
+addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/mat_files')
+
 parpool('local',str2num(getenv('SLURM_CPUS_PER_TASK')))
 usePMOD=1;
 

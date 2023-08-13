@@ -86,8 +86,9 @@ c21=datejd([dateStruct.cycles(1,:), fliplr(dateStruct.cycles(1,:))]);
 c23=datejd([dateStruct.cycles(3,:), fliplr(dateStruct.cycles(3,:))]);
 c25=datejd([dateStruct.cycles(5,:), fliplr(dateStruct.cycles(5,:))]);
 
-figure2('Position',[10 10 1000 1200])
-subplot('position',[.075 .85 .85 .13]) %Plot of proxy observations
+figure2('Position',[1 1 750 900])
+set(gcf, 'Color', 'w');
+subplot('position',[.09 .85 .825 .13]) %Plot of proxy observations
 yyaxis left
 fill(c21,[0 0 350 350],[.96 .96 .863],'FaceAlpha',...
     0.4,'LineStyle','none');
@@ -109,9 +110,11 @@ xlim([datetime(1978,1,1) datetime(2022,1,1)])
 yyaxis left
 ylim([0 350])
 set(gca,'FontSize',fSize)
-text(datetime(1978,7,1),380,'A','FontSize',fSize+6)
-
-subplot('position',[.075 .565 .85 .245]) %Plot of satellite observations
+text(datetime(1978,1,1),380,'A','FontSize',fSize+3)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Plot of satellites
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+subplot('position',[.09 .565 .825 .245]) %Plot of satellite observations
 fill(c21,[1360 1360 1374 1374],[.96 .96 .863],'FaceAlpha',...
     0.4,'LineStyle','none');
 hold on
@@ -127,8 +130,8 @@ for ii = 3:numel(lI) %Iterate over satellite observations
         hold on
         [trends,offsets2]= returntrend(A,tau,ii);
         tM = mean(trends,2) + mean(offsets2)+offsets(ii);
-        t995 = quantile(trends,.995,2)+quantile(offsets2,.995)+offsets(ii);
-        t005 = quantile(trends,.005,2)+quantile(offsets2,.005)+offsets(ii);
+        t995 = quantile(trends,.975,2)+quantile(offsets2,.975)+offsets(ii);
+        t005 = quantile(trends,.025,2)+quantile(offsets2,.025)+offsets(ii);
         x2 = [dateM(oM(:,ii))', flip(dateM(oM(:,ii)))'];
         fill(x2,[t995(oM(:,ii))',flip(t005(oM(:,ii)))'], ...
             [1 .85 .85],'FaceAlpha',0.5,'LineStyle','none');
@@ -149,12 +152,12 @@ legend(hh,colLabels(3:end),'NumColumns',2)
 legend boxoff
 ylabel('TSI (W/m^{2})')
 set(gca,'FontSize',fSize)
-text(datetime(1978,7,1),1374.7,'B','FontSize',fSize+6)
+text(datetime(1978,1,1),1374.7,'B','FontSize',fSize+3)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Plot of reconstructions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-subplot('position',[.075 .04 .85 .487])
+subplot('position',[.09 .06 .825 .457])
 fill(c21,[-1.2 -1.2 1.8 1.8],[.96 .96 .863],'FaceAlpha',...
     0.4,'LineStyle','none');
 hold on
@@ -166,7 +169,7 @@ fill(c25,[-1.2 -1.2 1.8 1.8],[.96 .96 .863],'FaceAlpha',...
 hold on
 cColor = get(gca,'colororder');
 %Get CI of our estimate,plot
-tsix = prctile(xAll',[.5 5 50 95 99.5])';
+tsix = prctile(xAll',[2.5 10 50 90 97.5])';
 for iS = 1:size(tsix,2)
     tsix(:,iS) = smoothPH(tsix(:,iS),smoothWindow);
 end
@@ -281,22 +284,23 @@ set(gca,'FontSize',fSize)
 xlabel('Year')
 ylabel('TSI anomaly from 1990-2010 mean (W/m^{2})')
 xlim([datetime(1978,1,1) datetime(2022,1,1)])
-ylim([-0.9 1.25])
+ylim([-0.9 1.65])
 text(datejd(dateStruct.cycles(1,1))+years(4.5),-0.8,'Cycle 21','FontSize',14)
 text(datejd(dateStruct.cycles(2,1))+years(3.25),-0.8,'Cycle 22','FontSize',14)
 text(datejd(dateStruct.cycles(3,1))+years(4.75),-0.8,'Cycle 23','FontSize',14)
 text(datejd(dateStruct.cycles(4,1))+years(4.25),-0.8,'Cycle 24','FontSize',14)
-text(datetime(1978,7,1),1.3,'C','FontSize',fSize+6)
+text(datetime(1978,1,1),1.71,'C','FontSize',fSize+3)
 [~,~,~,pthDate]=datechars;
-    savePth=['plots/tsicompare_' pthDate '.png'];
-    saveas(gcf,savePth);
+    savePth=['plots/tsicompare_' pthDate '.pdf'];
+export_fig savePth
 end
 if cycleMin
     %First, calculate the percentage of time that each simulation spends
     %inside of the 95% confidence interval
 
     xAll=xAll'+offsets(9);xms=mean(xAll,1);
-    figure2('Position',[10 10 1300 900])
+    figure2('Position',[1 1 1300 900])
+    set(gcf, 'Color', 'w');
     subplot('position',[.06 .30 .92 .66])
     trendInd=dateM>=datejd(dates(1))&dateM<datejd(dates(2));
     X = [ones(size(dateM(trendInd),1),1) juliandate(dateM(trendInd))];
@@ -308,8 +312,8 @@ if cycleMin
         yhat95(:,ii) = X*b95(:,ii);
     end
     hold on
-    yplot5=prctile(yhat5',[.5 5 50 95 99.5])';
-    yplot95=prctile(yhat95',[.5 5 50 95 99.5])';
+    yplot5=prctile(yhat5',[2.5 10 50 90 97.5])';
+    yplot95=prctile(yhat95',[2.5 10 50 90 97.5])';
     x2 = [dateM(trendInd)', fliplr(dateM(trendInd)')];
     fill(x2,[yplot5(:,1)',fliplr(yplot5(:,5)')],c(2,:).*1.05,'FaceAlpha',...
         0.5,'LineStyle','none');
@@ -349,8 +353,9 @@ if cycleMin
     set(gca,'FontSize',fSize)
     text(-0.349,size(xAll,1)./4.5455,'B','FontSize',fSize+6)
     [~,~,~,pthDate]=datechars;
-    savePth=['plots/mincycle_' pthDate '.png'];
-    saveas(gcf,savePth);
+    savePth=['plots/mincycle_' pthDate '.pdf'];
+    %saveas(gcf,savePth);
+    export_fig savePth
 end
 if tsiSunspots
     xAll=xAll-nanmean(xAll(:));
@@ -378,6 +383,7 @@ if tsiSunspots
     [~,sI]=sort(x); %Plot line in order on the x-axis
     
     figure2('Position',[10 10 1000 1000])
+    set(gcf, 'Color', 'w');
     x2=[x(sI); flipud(x(sI))];
     
     %Plot CI from BTSI for sunspots
@@ -449,6 +455,7 @@ if tsiSunspotsDetail
     [~,sI]=sort(x); %Plot line in order on the x-axis
     
     figure2('Position',[10 10 1000 1000])
+    set(gcf, 'Color', 'w');
     x2=[x(sI); flipud(x(sI))];
     
     %Plot CI from BTSI for sunspots
@@ -506,6 +513,7 @@ if cycleShift
     diff2422=mean(xCorr(low24,:),1)-mean(xCorr(low22,:),1);
     diff2421=mean(xCorr(low24,:),1)-mean(xCorr(low21,:),1);
     figure2('Position',[110 110 800 500])
+    set(gcf, 'Color', 'w');
     %First do end of cycle 24 minus 23
     pEdges = linspace(-0.35,0.05,1000);
     [y1,x1] = histcounts(diff2423,pEdges);
