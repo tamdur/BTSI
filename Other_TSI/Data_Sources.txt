@@ -1,0 +1,21 @@
+URL/Papers corresponding to TSI Composites used for comparison to BTSI
+Last Updated: 2024/10/23
+
+CPMDF: 
+ftp.pmodwrc.ch/pub/data/irradiance/virgo/TSI/TSI_composite
+
+Community-Consensus:
+https://spot.colorado.edu/~koppg/TSI/TSI_Composite-SIST.txt
+
+ROB:
+https://www.sidc.be/users/stevend/ROB_TSI_composite_latest.txt
+
+NRLTSI2:
+https://lasp.colorado.edu/lisird/data/nrl2_files
+
+SATIRE-S:
+https://www2.mps.mpg.de/projects/sun-climate/data.html
+
+AR6
+
+AR7:
