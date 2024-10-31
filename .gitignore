@@ -48,3 +48,5 @@ slprj/
 
 #Ignore directories with large files
 mat_files/large_files/
+#Ignore other large files
+*.nc
