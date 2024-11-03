@@ -30,7 +30,7 @@ opts = setvaropts(opts, "JD", "TrimNonNumeric", true);
 opts = setvaropts(opts, "JD", "ThousandsSeparator", ",");
 
 % Import the data
-SOLID2 = readtable("/Users/teda/Drive/MATLAB/Gibbs/code_22_06/get_obs/other_tsi/TSI_Composite-SIST_accessed_22_09_20.txt", opts);
+SOLID2 = readtable("TSI_Composite-SIST_accessed_24_10_23.txt", opts);
 
 
 %% Clear temporary variables
