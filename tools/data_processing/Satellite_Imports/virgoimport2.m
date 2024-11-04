@@ -31,7 +31,7 @@ opts = setvaropts(opts, ["UTC"], "EmptyFieldRule", "auto");
 opts = setvaropts(opts, ["TAI", "JulianDate", "VIRGOA", "VIRGOA_B", "VIRGOAB_UNC", "VIRGOA_Correc", "VIRGOAB_correc"], "ThousandsSeparator", ",");
 
 % Import the data
-VIRGO = readtable("/Users/teda/Drive/MATLAB/Gibbs/code_22_06/get_obs/import_scripts/instruments/VIRGO_TSI_daily_V8b2d_June_2022_accessed_22_10_13.txt", opts);
+VIRGO = readtable("VIRGO_TSI_Daily_V8_20240927.txt", opts);
 %Two versions: V8 with no early increase, V8b with early increase  
 %  /Users/teda/Drive/MATLAB/Gibbs/code_22_06/get_obs/import_scripts/instruments/VIRGO_TSI_daily_V82d_June_2022_accessed_22_10_13.txt
 %  /Users/teda/Drive/MATLAB/Gibbs/code_22_06/get_obs/import_scripts/instruments/VIRGO_TSI_daily_V8b2d_June_2022_accessed_22_10_13.txt

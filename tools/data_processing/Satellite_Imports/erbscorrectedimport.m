@@ -33,7 +33,7 @@ fclose(fileID);
 % script.
 
 %% Create output variable
-ERBSCORR.jd = dataArray{:, 1};
+ERBSCORR.JD = dataArray{:, 1};
 ERBSCORR.TSI = dataArray{:, 2};
 ERBSCORR.TSIUNC = dataArray{:, 3};
 

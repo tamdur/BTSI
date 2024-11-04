@@ -33,7 +33,7 @@ fclose(fileID);
 % script.
 
 %% Create output variable
-ACRIM2CORR.jd = dataArray{:, 1};
+ACRIM2CORR.JD = dataArray{:, 1};
 ACRIM2CORR.TSI = dataArray{:, 2};
 ACRIM2CORR.TSIUNC = dataArray{:, 3};
 

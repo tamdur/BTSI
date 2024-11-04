@@ -7,7 +7,7 @@
 
 %% Initialize variables.
 filename = 'HF_corr_accessed_22_7_7.dat';
-startRow = 8;
+startRow = 9;
 
 %% Format for each line of text:
 %   columns are the following: year, month, day, julian day, number of
@@ -33,7 +33,7 @@ fclose(fileID);
 % script.
 
 %% Create output variable
-NIMBUSCORR.jd = dataArray{:, 1};
+NIMBUSCORR.JD = dataArray{:, 1};
 NIMBUSCORR.TSI = dataArray{:, 2};
 NIMBUSCORR.TSIUNC = dataArray{:, 3};
 
