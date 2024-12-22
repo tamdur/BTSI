@@ -5,7 +5,7 @@
 BTSIv1.nc contains the BTSI output for the satellite era, last updated December 22, 2024.
 
 ### Running analysis with BTSI code
-Download BTSI to a Matlab directory. Running the MCMC model requires running runchain_22_04_25.m from the main project directory, a formatted array of observations (obsmatrix), prior hyperparameters for the observation model, and an observation mask array for observations that are excised. 
+Download BTSI, located at github.com/tamdur/BTSI, to a Matlab directory. Running the MCMC model requires running runchain_22_04_25.m from the main project directory, a formatted array of observations (obsmatrix), prior hyperparameters for the observation model, and an observation mask array for observations that are excised. 
 
 A completed observation mask array and set of prior hyperparameters are located within the /mat_files directory as excludeMask_24_12_10.mat and obspriors_22_06_23.mat, respectively. An array of observers, updated as of November 3 2024, is located in /mat_files as obs_24_12_11.mat. 
 
