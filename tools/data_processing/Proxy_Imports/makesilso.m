@@ -16,21 +16,20 @@ filename = 'SN_m_tot_V2.0_accessed_24_10_23.txt';
 %	column4: double (%f)
 %   column5: double (%f)
 %	column6: double (%f)
-%   column7: double (%f)
 % For more information, see the TEXTSCAN documentation.
-formatSpec = '%4f%3f%3f%9f%5f%6f%5f%[^\n\r]';
+
+formatSpec = '%4f%3f%9f%5f%6f%5f%[^\n\r]';
 fileID = fopen(filename,'r');
 dataArray = textscan(fileID, formatSpec, 'Delimiter', '', 'WhiteSpace', '', 'TextType', 'string', 'EmptyValue', NaN,  'ReturnOnError', false);
 fclose(fileID);
-SNdtotV2 = table(dataArray{1:end-1}, 'VariableNames', {'year','month','day','fracyear','spotnum','std','obs'});
+SNmV2 = table(dataArray{1:end-1}, 'VariableNames', {'year','month','fracyear','spotnum','std','obs'});
 clearvars filename formatSpec fileID dataArray ans;
 
-obsSilso.datetime = datetime(SNdtotV2.year,SNdtotV2.month,SNdtotV2.day);
+obsSilso.datetime = datetime(SNmV2.year,SNmV2.month,15);
 obsSilso.JD = juliandate(obsSilso.datetime);
-obsSilso.spotnum = SNdtotV2.spotnum;
+obsSilso.spotnum = SNmV2.spotnum;
 obsSilso.spotnum(obsSilso.spotnum < 0) = NaN; %Make NaNs for days without obs
-obsSilso.std = SNdtotV2.std;
-obsSilso.obs = SNdtotV2.obs;
-%save('/Users/teda/Drive/Research/Data/Solar/sunspots/obsSilso.mat','obsSilso')
+obsSilso.std = SNmV2.std;
+obsSilso.obs = SNmV2.obs;
 
 

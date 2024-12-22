@@ -43,7 +43,8 @@ sat(4).TSI = ACRIM2.TSI;
 %--------------------------------------------------
 % VIRGO/SOHO
 %--------------------------------------------------
-virgoimport2
+%virgoimport2 %For VIRGO files before 2024
+virgoimport3
 sat(5).ID = 'VIRGO/SOHO';
 sat(5).JD = VIRGO.JulianDate;
 sat(5).TSI = VIRGO.VIRGOAB_correc; %Note there exist other TSI products from this sat

@@ -12,7 +12,7 @@ startRow = 9;
 %% Format for each line of text:
 %   columns are the following: year, month, day, julian day, number of
 %   orbits with data, TSI
-formatSpec = '%12d%10f%10f%[^\n\r]';
+formatSpec = '%12.3d%10.3f%10.4f%[^\n\r]';
 
 %% Open the text file.
 fileID = fopen(filename,'r');

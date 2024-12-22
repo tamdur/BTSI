@@ -50,18 +50,21 @@ if ~exist('priorpath', 'var') || isempty(priorpath)
         % to set priors for proxies
         
         % Load the NRLTSI data
-        load oTSI_23_02_01.mat
+        load oTSI_24_11_03.mat
         tsiNRL=oTSI(4).mthtsi;
         dateNRL=oTSI(4).mthdatetime;
         
         % Filter the NRLTSI data for the satellite period
-        x=tsiNRL(dateNRL>=satDateM(1)-caldays(5) & dateNRL <= satDateM(end)+caldays(5));
+        iNRLDate = dateNRL>=satDateM(1)-caldays(5) & dateNRL <= satDateM(end)+caldays(5);
+        x=tsiNRL(iNRLDate);
         x=x-nanmean(x);
         % Loop over all the proxy observations
         for ii=1:sum(pindex)
             % Get the overlapping observations between the proxy and the
             % satellites
             overlap = oM(:,proxInd(ii));
+            %Handle satellite record longer than NRLTSI
+            overlap(satDateM > dateNRL(end)) = false;
             y=valM(overlap,proxInd(ii));
             
             % Perform linear regression between the overlapping NRLTSI data and the proxy

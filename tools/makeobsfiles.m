@@ -56,7 +56,7 @@ for ii = 1:length(instruments)
     fprintf(fid,'%s\n',dLine);
     
     %Print output
-    JD=instruments(ii).JD;Value=instruments(ii).TSI;
+    JD=double(instruments(ii).JD);Value=instruments(ii).TSI;
     X=[JD Value];
     fprintf(fid,'%s %12s \n','JD','Value');
     fprintf(fid,'%7.1f %f\n',X');

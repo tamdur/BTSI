@@ -1,6 +1,6 @@
 BremenMgII
 Version: v5
-Created: 03-Nov-2024
+Created: 12-Dec-2024
 JD        Value 
 2443819.5 0.164020
 2443820.5 0.163820

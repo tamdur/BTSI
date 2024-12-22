@@ -14,7 +14,7 @@ function [xAll,sigY,sigX,theta,a,A,tau,outDat] = runchain_22_04_25(valM,oM,dateM
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 outDat.script=mfilename; %Save name of script
 if ~exist('valM','var') || isempty(valM) %Load default observation array, otherwise load provided one
-    obsmatrix='obs_23_03_27'; %Load data array, with colLabels corresponding to observer source for each column
+    obsmatrix='obs_24_12_11'; %Load data array, with colLabels corresponding to observer source for each column
     load(obsmatrix); %From makeobsmatrix.m
 else
      obsmatrix=opts.obsmatrix;
@@ -46,7 +46,7 @@ dateS=getdates;
 % Beginning of main script
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if opts.excludeFliers %Code to remove outliers using a past run of BTSI
-    load excludeMask_23_03_27.mat %from exclude_fliers_22_04_26.m
+    load excludeMask_24_12_10.mat %from exclude_fliers_22_04_26.m
     valM(excludeMask) = NaN;
     oM(excludeMask) = false;
 end

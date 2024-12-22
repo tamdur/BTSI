@@ -9,15 +9,14 @@ clearvars
 % otherwise
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PLOTS
-satireCompare=1;%Examine relationship between SATIRE-S and BTSI, 0 otherwise
+satireCompare=0;%Examine relationship between SATIRE-S and BTSI, 0 otherwise
 btsiCompare=0; %Plot BTSI from default vs different BTSI formulations
 obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
 satsatcomp=0; %Plot overlapping satellite observation model predictions
 priorsposteriors=0; %Plot three figures for: prior/posterior offset, prior/posterior drift, prior/posterior standard error
 plotData=0;
 obsResiduals=0; %Plot the residual of observers relative to model prediction
-obsResidualsSat = 0; %Plot the residual of observers relative to model prediction for satellite model
-priorPosteriorSat=0; %Plot in one panel figures for: prior/posterior offset, prior/posterior drift, prior/posterior standard error
+priorPosteriorSat=1; %Plot in one panel figures for: prior/posterior offset, prior/posterior drift, prior/posterior standard error
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TABLE CALCULATIONS
 table1=0; %Produce values for Table 1
@@ -27,20 +26,19 @@ btsiCompareTable=0; %Calculate solar constant and amplitude trends (w/ 95%CI) fo
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
 uncBTSI=0; %Calculate and plot the uncertainty in BTSI
-solarvsanthroforcing = 0;%Calculate global mean surface temperature effect from 
+solarvsanthroforcing = 1;%Calculate global mean surface temperature effect from 
                     %the proposed degree of additional solar radiative
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fSize = 8;
+fSize = 16;
 
 excludeFliers=1;
-
 
 load ar2_23_05_11_long.mat
 dateStruct = getdates;
 startDate = datejd(dateStruct.all(1));
 endDate = datejd(dateStruct.all(2));
-dates = [juliandate(datetime(1980,2,1)) juliandate(datetime(2021,12,31))]; %Use full interval
+dates = [juliandate(datetime(1980,1,1)) juliandate(datetime(2021,12,31))]; %Use full interval
 %dates = [juliandate(datetime(1978,11,1)) juliandate(datetime(2021,12,31))]; %T Response Interval
 %dates=[juliandate(datetime(1980,2,1)) juliandate(datetime(2015,10,1))]; %Use shared interval
 %Load data, with colLabels corresponding to observer source for each column
@@ -127,14 +125,13 @@ if satireCompare
     dateM2=dateM(dateM>=dates2(1) & dateM<dates2(2));
     
     %Plot figure
-    f = figure2('Position',[10 10 900 700]);
+    figure2('Position',[10 10 1000 800])
     set(gcf, 'Color', 'w');
-    line([-.75 1.45],[-.75,1.45],'Color','k','LineWidth',1.5)
-    hold on
     h(1)=plot((btsi1-mean(btsi1)),(tsiS1-mean(tsiS1)),'.');
     hold on
     h(2)=plot((btsi2-mean(btsi2)),(tsiS2-mean(tsiS2)),'.');
     hold on
+    line([-.6 1.41],[-.6,1.41],'Color','k')
     xlim([-.75 1.45])
     ylim([-.75 1.45])
     xlabel('BTSI Anomaly (W/m^{2})')
@@ -143,22 +140,15 @@ if satireCompare
     legendtxt(2)=string(['1999-2021: r=' num2str(corr(btsi2,tsiS2),2)]);
     legend(h,legendtxt,'Location','NorthWest')
     legend boxoff
-    set(gca,'FontSize',fSize)
+    set(gca,'FontSize',16)
     [~,~,~,pthDate]=datechars;
-    savePth=['plots/satirebtsicompare_' pthDate '.eps'];
-    x0=1;
-    y0=1;
-    width=11.4;
-    height=11.4;
-    set(gcf,'units','centimeters','position',[x0,y0,width,height])
-
-    exportgraphics(f,savePth,'ContentType','vector',...
-        'BackgroundColor','none')
+    savePth=['plots/satirebtsicompare_' pthDate '.png'];
+    saveas(gcf,savePth);
 end
 if btsiCompare
     showTrend = 1;
     smoothWindow = 6; %set smoothing (months)
-    f = figure2('Position',[10 10 750 900]);
+    figure2('Position',[10 10 750 900])
     set(gcf, 'Color', 'w');
 %     pause(.4);
 %     set(gcf,'Position',[150 1050 1000 1200])
@@ -253,15 +243,8 @@ if btsiCompare
     xlim([datetime(1978,1,1) datetime(2022,1,1)])
     ylim([-0.8 1.6])
     [~,~,~,pthDate]=datechars;
-    savePth=['plots/tsialternatives_' pthDate '.eps'];
-    x0=1;
-    y0=1;
-    width=17.8;
-    height=22;
-    set(gcf,'units','centimeters','position',[x0,y0,width,height])
-
-    exportgraphics(f,savePth,'ContentType','vector',...
-        'BackgroundColor','none')
+    savePth=['plots/tsialternatives_' pthDate '.png'];
+    %saveas(gcf,savePth);
 end
 if obsContributions
      %Plot the relative contribution of each observer to the estimate of TSI
@@ -276,7 +259,7 @@ if obsContributions
     cn=cn./nansum(cn,2);
     
     %Plot
-    f = figure2('Position',[10 10 1600 700]);
+    figure2('Position',[10 10 1600 700])
     set(gcf, 'Color', 'w');
     hold on
     ind=1;
@@ -296,21 +279,9 @@ if obsContributions
     xlabel('Year')
     ylabel('Fractional contribution')
     set(gca,'FontSize',fSize)
-    xlim([datetime(1979,1,1) datetime(2021,11,31)])
-    ylim([0 1])
-    set(gca,'FontName','Helvetica')
-    saveas(gcf,'plots/obscontribution_24_02_11.png')
-    
-    [~,~,~,pthDate]=datechars;
-    savePth=['plots/obscontribution_' pthDate '.eps'];
-    x0=1;
-    y0=1;
-    width=17.8;
-    height=22;
-    set(gcf,'units','centimeters','position',[x0,y0,width,height])
-
-    exportgraphics(f,savePth,'ContentType','vector',...
-        'BackgroundColor','none')
+    xlim([datetime(1979,1,1) datetime(2021,10,31)])
+    %ylim([0 1])
+    saveas(gcf,'plots/obscontribution_23_05_13.png')
     
 end
 if satsatcomp
@@ -333,7 +304,7 @@ if satsatcomp
             end
         end
     end
-    f = figure2('Position',[1 1 1600 900]);
+    figure2('Position',[1 1 1600 900])
     set(gcf, 'Color', 'w');
 %     set(gcf,'Position',[100 1300 2300 1300])
 %     set(gcf,'Position',[100 1300 2300 1300])
@@ -356,9 +327,9 @@ if satsatcomp
                 xm=mean(xAll,2);
                 residual2 = valM(oInd,s2)-xm(oInd);residual2=residual2-mean(residual2);
                 residual1 = valM(oInd,s1)-xm(oInd);residual1=residual1-mean(residual1);
-                plot(dateM(oInd),residual1,'.','MarkerSize',5,'Color',cmat(1,:));
+                plot(dateM(oInd),residual1,'.','MarkerSize',10,'Color',cmat(1,:));
                 hold on
-                plot(dateM(oInd),residual2,'.','MarkerSize',5,'Color',cmat(2,:));
+                plot(dateM(oInd),residual2,'.','MarkerSize',10,'Color',cmat(2,:));
                 
                 %Plot inferred trends for each satellite
                 [t1,o1]=returntrend(A,tau(oInd,:),s1);
@@ -372,20 +343,20 @@ if satsatcomp
                 t2025=quantile(t2+o2,0.025,2)-t2mm;
                 t2975=quantile(t2+o2,0.975,2)-t2mm;
                 hold on
-                h(1)=plot(dateM(oInd),t1m,'Color',cmat(1,:),'LineWidth',1.5);
+                h(1)=plot(dateM(oInd),t1m,'Color',cmat(1,:),'LineWidth',3.5);
                 hold on
-                plot(dateM(oInd),t1025,'Color',cmat(1,:),'LineWidth',1)
+                plot(dateM(oInd),t1025,'Color',cmat(1,:),'LineWidth',2)
                 hold on
-                plot(dateM(oInd),t1975,'Color',cmat(1,:),'LineWidth',1)
+                plot(dateM(oInd),t1975,'Color',cmat(1,:),'LineWidth',2)
                 hold on
-                h(2)=plot(dateM(oInd),t2m,'Color',cmat(2,:),'LineWidth',1.5);
+                h(2)=plot(dateM(oInd),t2m,'Color',cmat(2,:),'LineWidth',3.5);
                 hold on
-                plot(dateM(oInd),t2025,'Color',cmat(2,:),'LineWidth',1)
+                plot(dateM(oInd),t2025,'Color',cmat(2,:),'LineWidth',2)
                 hold on
-                plot(dateM(oInd),t2975,'Color',cmat(2,:),'LineWidth',1)
+                plot(dateM(oInd),t2975,'Color',cmat(2,:),'LineWidth',2)
                 lgd=legend(h,colLabels(s1),colLabels(s2),'Location','SouthEast');
-                lgd.FontSize=fSize;
-%                 legend boxoff
+                lgd.FontSize=10;
+                legend boxoff
                 indD=indD+1;
                 set(gca,'FontSize',fSize)
                 if s1 < 6
@@ -406,17 +377,7 @@ if satsatcomp
     end
     delete(tt.Children(53-deleteAxes))
     %saveas(gcf,'plots/satresidual_23_05_13.png')
-%     export_fig plots/satresidual_23_07_02.pdf
-    [~,~,~,pthDate]=datechars;
-    savePth=['plots/satresidual_' pthDate '.eps'];
-    x0=1;
-    y0=1;
-    width=17.8./.5625;
-    height=17.8;
-    set(gcf,'units','centimeters','position',[x0,y0,width,height])
-
-    exportgraphics(f,savePth,'ContentType','vector',...
-        'BackgroundColor','none')
+    export_fig plots/satresidual_23_07_02.pdf
 end
 if priorsposteriors
     %Pull output from simulation
@@ -464,7 +425,7 @@ if priorsposteriors
     %------------------------------------------------------------------
     % First, plot estimated offsets 
     %------------------------------------------------------------------
-    f = figure2('Position',[10 10 1600 600]);
+    figure2('Position',[10 10 1600 600])
     set(gcf, 'Color', 'w');
     %subplot('position',[.09 .7 .85 .27])
     offsetsI = [3:8 10:12]';
@@ -681,7 +642,7 @@ if obsResiduals
     %Get the standard error for each observer
     SE = sqrt(mean(sigY,2)).*scaling;
     excludeSig = 3;
-    f = figure2('Position',[100 100 1400 800]);
+    figure2('Position',[100 100 1400 800])
     set(gcf, 'Color', 'w');
     set(gcf,'Position',[100 1300 1400 800])
     set(gcf,'Position',[100 1300 1400 800])
@@ -706,102 +667,8 @@ if obsResiduals
     end
     set(gca,'FontSize',fSize)
     [~,~,~,pthDate]=datechars;
-    savePth=['plots/obsresiduals_' pthDate '.eps'];
-    [~,~,~,pthDate]=datechars;
-    x0=1;
-    y0=1;
-    width=22;
-    height=17.8;
-    set(gcf,'units','centimeters','position',[x0,y0,width,height])
-
-    exportgraphics(f,savePth,'ContentType','vector',...
-        'BackgroundColor','none')
-end
-if obsResidualsSat
-    subsetI = [1, 2, 3, 5, 6, 7, 9, 10, 11, 12];
-    SE = sqrt(mean(sigY(3:end,:),2)).*scaling(3:end);
-    load ar2_23_05_10_satonly.mat
-    load(outDat.obsmatrix); %From makeobsmatrix.m
-    valM = outDat.opts.valM;
-    valM = valM(:,subsetI);
-    valMAll = valM;dateMAll=dateM;
-    
-    %Reorder to match labels
-    %Order for proxies is sunspots first then MgII
-    %Order for sats is chronological from first observation: HF, ACRIM1, ERBE, ACRIM2,
-    %VIRGO/SOHO, ACRIM3, TIM/SORCE, PREMOS/PICARD, TCTE, TSIS-1
-    %Order as proxies followed by satellites in chronological order
-    lI=[5;1;4;2;10;3;7;6;8;9];
-    %Create alternative column labels for publication
-    colLabels=[...
-        "Nimbus-7/HF";
-        "SMM/ACRIM1";
-        "ERBS/ERBE";
-        "UARS/ACRIM2";
-        "SOHO/VIRGO"
-        "ACRIMSAT/ACRIM3";
-        "SORCE/TIM";
-        "Picard/PREMOS";
-        "TCTE/TIM";
-        "TSIS-1/TIM";
-        ];
-    A=A(lI,:,:);
-    offsets=offsets(lI);
-    oM=oM(:,lI);
-    sigY=sigY(lI,:);
-    tau=tau(:,lI);
-    valM=valM(:,lI); valMAll=valMAll(:,lI);
-    oMAll=~isnan(valMAll);
-    scaling=outDat.scaling(lI);
-    pindex=~outDat.satindex(lI);
-    oindex=outDat.oindex(lI);
-
-
-    %Make multi-panel plot of residual between model-expectation and the
-    %observed values.
-    sim = 1; %Simulation picked for plot
-    %First, calculate the percentage of time that each simulation spends
-    %inside of the 95% confidence interval
-    interval = 1; %Gap between realizations to be used (there's only 1 realization of reality)
-    plotOthers = 0; %Plot other reconstructions
-    [ym,y5,y95,yAll] = estimatekalmanciy(A,xAll,sigY,tau,scaling);
-    %Get the standard error for each observer
-    excludeSig = 2;
-    f = figure2('Position',[100 -300 980 560]);
-    set(gcf, 'Color', 'w');
-%     set(gcf,'Position',[100 1300 1400 800])
-%     set(gcf,'Position',[100 1300 1400 800])
-    t = tiledlayout(3,4,'TileSpacing','Compact','Padding','Compact');
-    for ii = 1:size(valM,2)
-        nexttile
-        x2 = [dateM(1) dateM(end) dateM(end) dateM(1)];
-        y=excludeSig.*SE(ii);
-        fill(x2,[y y -y -y], [.85 .85 .85],'FaceAlpha',...
-        0.5,'LineStyle','none');
-        hold on
-        plot(dateMAll,valMAll(:,ii)-ym(:,ii),'.','Color','r')
-        hold on
-        plot(dateM,valM(:,ii)-ym(:,ii),'.','Color','k')
-        obsLabel = colLabels(ii);
-        ylabel([obsLabel " residual"])
-        set(gca,'FontSize',fSize)
-        iD=find(oMAll(:,ii));
-        xlim([dateMAll(iD(1)) dateMAll(iD(end))])
-        hold on
-        line([dateMAll(iD(1)) dateMAll(iD(end))],[0 0],'LineStyle','--','Color','k')
-    end
-    set(gca,'FontSize',fSize)
-    [~,~,~,pthDate]=datechars;
-    savePth=['plots/obsresidualssat_' pthDate '.eps'];
-    [~,~,~,pthDate]=datechars;
-    x0=1;
-    y0=1;
-    width=22;
-    height=17.8;
-    set(gcf,'units','centimeters','position',[x0,y0,width,height])
-
-    exportgraphics(f,savePth,'ContentType','vector',...
-        'BackgroundColor','none')
+    savePth=['plots/obsresiduals_' pthDate '.png'];
+    saveas(gcf,savePth);
 end
 if priorPosteriorSat
     c=loadcolors;
@@ -855,7 +722,7 @@ if priorPosteriorSat
     %------------------------------------------------------------------
     % First, plot estimated offsets 
     %------------------------------------------------------------------
-    f = figure2('Position',[1 1 1400 900]);
+    figure2('Position',[1 1 1400 900])
     set(gcf, 'Color', 'w');
 %     pause(.4);
 %     set(gcf,'Position',[150 1050 1500 1000])
@@ -892,9 +759,9 @@ if priorPosteriorSat
     xlabel("W/m^{2}")
     set(gca,'ytick',[])
     set(gca,'FontSize',fSize)
-    xlim([1356.5 1372])
+    xlim([1358.5 1372])
     ylim([0 9.35])
-    text(1356.65,9.85,'A','FontSize',fSize+6)
+    text(1358.65,9.85,'A','FontSize',fSize+6)
     %------------------------------------------------------------------
     % Next, plot estimated linear drifts 
     %------------------------------------------------------------------
@@ -928,9 +795,9 @@ if priorPosteriorSat
     xlabel("W/m^{2} per decade")
     set(gca,'ytick',[])
     set(gca,'FontSize',fSize)
-    xlim([-0.9 0.7])
+    xlim([-0.7 0.7])
     ylim([0 17])
-    text(-0.885,17.8,'B','FontSize',fSize+6)
+    text(-0.685,17.8,'B','FontSize',fSize+6)
     %------------------------------------------------------------------
     % Last, plot noise estimates
     %------------------------------------------------------------------
@@ -978,16 +845,8 @@ if priorPosteriorSat
     text(0.006,73.5,'C','FontSize',fSize+6)
     set(gca,'FontSize',fSize)
     [~,~,~,pthDate]=datechars;
-    savePth=['plots/priorposterior_' pthDate '.eps'];
-    [~,~,~,pthDate]=datechars;
-    x0=1;
-    y0=1;
-    width=22;
-    height=17.8;
-    set(gcf,'units','centimeters','position',[x0,y0,width,height])
-
-    exportgraphics(f,savePth,'ContentType','vector',...
-        'BackgroundColor','none')
+    savePth=['plots/priorposterior_' pthDate '.png'];
+    %saveas(gcf,savePth);
 end
 
 
@@ -1152,8 +1011,7 @@ if btsiCompareTable
     model=[];min=[];amp=[];total=[];
     warning('off','MATLAB:rankDeficientMatrix') %Some realizations for quant_reg are rank deficient
     %intI=dateM>=datetime(1980,2,1)&dateM<=datetime(2015,10,31); %2/1980--10/2015
-    %intI=dateM>=datetime(1978,11,1)&dateM<=datetime(2021,12,31); %11/1978--12/2021
-     intI=dateM>=datetime(1980,2,1)&dateM<=datetime(2021,12,31); %11/1978--12/2021
+     intI=dateM>=datetime(1978,11,1)&dateM<=datetime(2021,12,31); %11/1978--12/2021
     
     
     
