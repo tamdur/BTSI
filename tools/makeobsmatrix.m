@@ -1,14 +1,14 @@
 %Revised version of makemodernobs.m
 %Ted Amdur
 %6/15/22
-
+clearvars
 %Develop a set of monthly observations from satellite and proxy
 %observations
 dateS=getdates;
 dateR=dateS.all; %Load range of dates for which to incorporate observations
 removeOffsets=1; %1 to remove offsets from observations, 0 to keep native units
 satOnly=0; %1 to only use satellites, 0 to use proxies+satellites
-saveString= 'mat_files/obs_23_05_10_pmod.mat'; %Name of saved mat file
+saveString= 'mat_files/obs_24_12_11_pmod.mat'; %Name of saved mat file
 
 paths=dir('observations_pmod/*.txt');
 paths={paths.name};

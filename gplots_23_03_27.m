@@ -6,15 +6,13 @@
 
 clearvars
 
-
-
 tsiComparison = 0; %Set to 1 to plot Figure 1 of manuscript
-cycleMin = 1; %Set to 1 to plot Figure 2 of manuscript
+cycleMin = 0; %Set to 1 to plot Figure 2 of manuscript
 tsiSunspots=0; %Set to 1 to plot Figure 3 of manuscript
 tsiSunspotsDetail=0; %Set to 1 to plot detail of Figure 3 of manuscript
-cycleShift=0; %Set to 1 to plot change in TSI between cycle minima
+cycleShift=1; %Set to 1 to plot change in TSI between cycle minima
 
-fSize = 16;
+fSize = 8;
 
 %from runchain_22_04_25.m
 
@@ -86,9 +84,9 @@ c21=datejd([dateStruct.cycles(1,:), fliplr(dateStruct.cycles(1,:))]);
 c23=datejd([dateStruct.cycles(3,:), fliplr(dateStruct.cycles(3,:))]);
 c25=datejd([dateStruct.cycles(5,:), fliplr(dateStruct.cycles(5,:))]);
 
-figure2('Position',[1 1 750 900])
+f = figure2('Position',[1 1 750 900]);
 set(gcf, 'Color', 'w');
-subplot('position',[.09 .85 .825 .13]) %Plot of proxy observations
+subplot('position',[.11 .85 .795 .13]) %Plot of proxy observations
 yyaxis left
 fill(c21,[0 0 350 350],[.96 .96 .863],'FaceAlpha',...
     0.4,'LineStyle','none');
@@ -110,11 +108,11 @@ xlim([datetime(1978,1,1) datetime(2022,1,1)])
 yyaxis left
 ylim([0 350])
 set(gca,'FontSize',fSize)
-text(datetime(1978,1,1),380,'A','FontSize',fSize+3)
+text(datetime(1977,11,1),380,'A','FontSize',fSize)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Plot of satellites
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-subplot('position',[.09 .565 .825 .245]) %Plot of satellite observations
+subplot('position',[.11 .565 .795 .245]) %Plot of satellite observations
 fill(c21,[1360 1360 1374 1374],[.96 .96 .863],'FaceAlpha',...
     0.4,'LineStyle','none');
 hold on
@@ -152,12 +150,12 @@ legend(hh,colLabels(3:end),'NumColumns',2)
 legend boxoff
 ylabel('TSI (W/m^{2})')
 set(gca,'FontSize',fSize)
-text(datetime(1978,1,1),1374.7,'B','FontSize',fSize+3)
+text(datetime(1977,11,1),1374.7,'B','FontSize',fSize)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Plot of reconstructions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-subplot('position',[.09 .06 .825 .457])
+subplot('position',[.11 .06 .795 .457])
 fill(c21,[-1.2 -1.2 1.8 1.8],[.96 .96 .863],'FaceAlpha',...
     0.4,'LineStyle','none');
 hold on
@@ -285,23 +283,33 @@ xlabel('Year')
 ylabel('TSI anomaly from 1990-2010 mean (W/m^{2})')
 xlim([datetime(1978,1,1) datetime(2022,1,1)])
 ylim([-0.9 1.65])
-text(datejd(dateStruct.cycles(1,1))+years(4.5),-0.8,'Cycle 21','FontSize',14)
-text(datejd(dateStruct.cycles(2,1))+years(3.25),-0.8,'Cycle 22','FontSize',14)
-text(datejd(dateStruct.cycles(3,1))+years(4.75),-0.8,'Cycle 23','FontSize',14)
-text(datejd(dateStruct.cycles(4,1))+years(4.25),-0.8,'Cycle 24','FontSize',14)
-text(datetime(1978,1,1),1.71,'C','FontSize',fSize+3)
+text(datejd(dateStruct.cycles(1,1))+years(3.5),-0.8,'Cycle 21','FontSize',fSize)
+text(datejd(dateStruct.cycles(2,1))+years(2.25),-0.8,'Cycle 22','FontSize',fSize)
+text(datejd(dateStruct.cycles(3,1))+years(3.75),-0.8,'Cycle 23','FontSize',fSize)
+text(datejd(dateStruct.cycles(4,1))+years(3.25),-0.8,'Cycle 24','FontSize',fSize)
+text(datetime(1977,11,1),1.71,'C','FontSize',fSize)
 [~,~,~,pthDate]=datechars;
-    savePth=['plots/tsicompare_' pthDate '.pdf'];
-export_fig savePth
+    savePth=['plots/tsicompare_' pthDate '.eps'];
+%export_fig savePth
+x0=1;
+y0=1;
+width=17.8;
+height=22;
+set(gcf,'units','centimeters','position',[x0,y0,width,height])
+
+exportgraphics(f,savePth,'ContentType','vector',...
+               'BackgroundColor','none')
+% exportgraphics(f,savePth,'ContentType','vector',...
+%                'BackgroundColor','none')
 end
 if cycleMin
     %First, calculate the percentage of time that each simulation spends
     %inside of the 95% confidence interval
 
     xAll=xAll'+offsets(9);xms=mean(xAll,1);
-    figure2('Position',[1 1 1300 900])
+    f = figure2('Position',[100 -242 800 600]);
     set(gcf, 'Color', 'w');
-    subplot('position',[.06 .30 .92 .66])
+    subplot('position',[.1 .39 .86 .57])
     trendInd=dateM>=datejd(dates(1))&dateM<datejd(dates(2));
     X = [ones(size(dateM(trendInd),1),1) juliandate(dateM(trendInd))];
     warning('off','MATLAB:rankDeficientMatrix') %Some realizations for quant_reg are rank deficient
@@ -329,7 +337,7 @@ if cycleMin
     hold on
     plot(dateM(trendInd),yplot95(:,3),'Color',c(8,:),'LineWidth',2)
     hold on
-    plot(dateM,xAll','.','Color',[0.65 0.65 0.65])
+    plot(dateM,xAll(1:100:end,:)','.','Color',[0.65 0.65 0.65])
     hold on
     plot(dateM,xms,'Color','k','LineWidth',2)
     xlabel('Year')
@@ -338,10 +346,10 @@ if cycleMin
     box off
     yticks(1360:1:1363)
     ylim([1360 1363])
-    text(datetime(1979,1,1),1363.073,'A','FontSize',fSize+6)
+    text(datetime(1979,1,1),1363.073,'A','FontSize',fSize)
     
     %Plot histograms
-    subplot('position',[.06 .06 .92 .18])
+    subplot('position',[.1 .08 .86 .21])
     histogram(b5(2,:).*(365.25*10),linspace(-.40,0.02,85),'FaceColor',c(2,:))
     hold on
     histogram(b95(2,:).*(365.25*10),linspace(-.40,0.02,85),'FaceColor',c(8,:))
@@ -351,11 +359,19 @@ if cycleMin
     xlabel('W/m^{2}/decade')
     xlim([-0.35 0])
     set(gca,'FontSize',fSize)
-    text(-0.349,size(xAll,1)./4.5455,'B','FontSize',fSize+6)
+    text(-0.349,size(xAll,1)./4.44,'B','FontSize',fSize)
     [~,~,~,pthDate]=datechars;
-    savePth=['plots/mincycle_' pthDate '.pdf'];
-    %saveas(gcf,savePth);
-    export_fig savePth
+    savePth=['plots/mincycle_' pthDate '.eps'];
+    %export_fig savePth
+    x0=1;
+    y0=1;
+    width=11.4;
+    height=11.4;
+    set(gcf,'units','centimeters','position',[x0,y0,width,height])
+
+    exportgraphics(f,savePth,'ContentType','vector',...
+        'BackgroundColor','none')
+    %export_fig savePth
 end
 if tsiSunspots
     xAll=xAll-nanmean(xAll(:));
@@ -382,7 +398,7 @@ if tsiSunspots
     [linfit,linint]=regress(y,[ones(length(x),1) x]);
     [~,sI]=sort(x); %Plot line in order on the x-axis
     
-    figure2('Position',[10 10 1000 1000])
+    f = figure2('Position',[10 10 1000 1000]);
     set(gcf, 'Color', 'w');
     x2=[x(sI); flipud(x(sI))];
     
@@ -408,7 +424,7 @@ if tsiSunspots
     for ii = 1:size(dateStruct.cycles,1)
         cycleI = dateM > datejd(dateStruct.cycles(ii,1)) & dateM < datejd(dateStruct.cycles(ii,2));
         hold on
-        h(ii) = plot(xm(cycleI),valM(cycleI,1)+offsets(1),'.','MarkerSize',15,'Color',c(2*ii-1,:));
+        h(ii) = plot(xm(cycleI),valM(cycleI,1)+offsets(1),'.','MarkerSize',8,'Color',c(2*ii-1,:));
     end
     hold on
     h(ii+1)=plot(x(sI),linPreds(sI,2),'Color','k','LineWidth',1.5);
@@ -426,7 +442,17 @@ if tsiSunspots
     xlabel('BTSI anomaly (W/m^{2})')
     ylabel('SILSO sunspot number')
     set(gca,'FontSize',fSize)
-    saveas(gcf,'plots/tsispots_23_03_27.png')
+    [~,~,~,pthDate]=datechars;
+    savePth=['plots/tsispots_' pthDate '.eps'];
+
+    x0=1;
+    y0=1;
+    width=17.8;
+    height=17.8;
+    set(gcf,'units','centimeters','position',[x0,y0,width,height])
+
+    exportgraphics(f,savePth,'ContentType','vector',...
+        'BackgroundColor','none')
     
 end
 if tsiSunspotsDetail
@@ -454,7 +480,7 @@ if tsiSunspotsDetail
     [linfit,linint]=regress(y,[ones(length(x),1) x]);
     [~,sI]=sort(x); %Plot line in order on the x-axis
     
-    figure2('Position',[10 10 1000 1000])
+    f = figure2('Position',[10 10 1000 1000]);
     set(gcf, 'Color', 'w');
     x2=[x(sI); flipud(x(sI))];
     
@@ -480,7 +506,7 @@ if tsiSunspotsDetail
     for ii = 1:size(dateStruct.cycles,1)
         cycleI = dateM > datejd(dateStruct.cycles(ii,1)) & dateM < datejd(dateStruct.cycles(ii,2));
         hold on
-        h(ii) = plot(xm(cycleI),valM(cycleI,1)+offsets(1),'.','MarkerSize',40,'Color',c(2*ii-1,:));
+        h(ii) = plot(xm(cycleI),valM(cycleI,1)+offsets(1),'.','MarkerSize',8,'Color',c(2*ii-1,:));
     end
     hold on
     h(ii+1)=plot(x(sI),linPreds(sI,2),'Color','k','LineWidth',1.5);
@@ -490,8 +516,18 @@ if tsiSunspotsDetail
     set(gca,'ytick',[])
     xlim([-.754 -.754+.5])
     ylim([0 50])
-    set(gca,'FontSize',fSize+10)
-    saveas(gcf,'plots/tsispotsdetail_23_03_27.png')
+    set(gca,'FontSize',fSize)
+    [~,~,~,pthDate]=datechars;
+    savePth=['plots/tsispotsdetail_' pthDate '.eps'];
+
+    x0=1;
+    y0=1;
+    width=6.5;
+    height=5.2;
+    set(gcf,'units','centimeters','position',[x0,y0,width,height])
+
+    exportgraphics(f,savePth,'ContentType','vector',...
+        'BackgroundColor','none')
 end
 if cycleShift
 %     %first, select for datetimes when SILSO spot count is less than 5
@@ -512,7 +548,7 @@ if cycleShift
     diff2423=mean(xCorr(low24,:),1)-mean(xCorr(low23,:),1);
     diff2422=mean(xCorr(low24,:),1)-mean(xCorr(low22,:),1);
     diff2421=mean(xCorr(low24,:),1)-mean(xCorr(low21,:),1);
-    figure2('Position',[110 110 800 500])
+    f = figure2('Position',[110 -200 800 500]);
     set(gcf, 'Color', 'w');
     %First do end of cycle 24 minus 23
     pEdges = linspace(-0.35,0.05,1000);
@@ -524,24 +560,34 @@ if cycleShift
     %Then do end of cycle 24 minus 22
     pEdges = linspace(-0.35,0.05,1000);
     [y2,x2] = histcounts(diff2422,pEdges);
-    [x2,y2,~] = histtoplot(y2,x2,100);
+    [x2,y2,~] = histtoplot(y2,x2,150);
     hold on
     plot(x2,y2,'Color',c(2,:),'LineWidth',2.5)
     
     %Then do end of cycle 24 minus 21
     pEdges = linspace(-0.35,0.05,1000);
     [y3,x3] = histcounts(diff2421,pEdges);
-    [x3,y3,~] = histtoplot(y3,x3,100);
+    [x3,y3,~] = histtoplot(y3,x3,150);
     hold on
     plot(x3,y3,'Color',c(3,:),'LineWidth',2.5)
     xlabel('\Delta TSI (W/m^{2})')
     ylabel('PDF')
-    legend('Cycle 24 - Cycle 23','Cycle 24 - Cycle 22','Cycle 24 - Cycle 21','Location','NorthWest')
+    lgd = legend('Cycle 24 - Cycle 23','Cycle 24 - Cycle 22',...
+        'Cycle 24 - Cycle 21','Location','NorthWest');
     legend boxoff
+%     fontsize(lgd,8,'points');
     set(gca,'FontSize',fSize)
     [~,~,~,pthDate]=datechars;
-    savePth=['plots/mindiff_' pthDate '.png'];
-    saveas(gcf,savePth);
+    savePth=['plots/mindiff_' pthDate '.eps'];
+    x0=1;
+    y0=1;
+    width=8.7;
+    height=6;
+    set(gcf,'units','centimeters','position',[x0,y0,width,height])
+
+    exportgraphics(f,savePth,'ContentType','vector',...
+        'BackgroundColor','none')
+    
     
     
 %     histogram(diff2423,'BinWidth',0.01)
